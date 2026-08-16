@@ -1,0 +1,31 @@
+Rageforge Spiegelwürfel
+Minecraft 26.2 · Fabric · kostenlos für die Community
+Autor: Rageforge
+
+Spiegel-Engine basiert auf der Mod "Mirror" von Isaac Harper (MIT).
+Erweitert um Spiegelwürfel (alle 6 Seiten), Rageforge-Kreativ-Tab und Anpassungen.
+
+BENÖTIGT
+- Minecraft Java 26.2
+- Fabric Loader 0.19+
+- Fabric API für 26.2 (Modrinth: fabric-api)
+
+INSTALLATION
+1. Fabric für 26.2 installieren
+2. Fabric API in den mods-Ordner legen
+3. Inhalt von mods/ hier in deinen mods-Ordner kopieren
+4. Optional: config/mirror.json in deinen config-Ordner kopieren
+5. Spiel starten
+
+IM SPIEL
+- Kreativ-Tab "Rageforge" öffnen
+- Spiegelwürfel setzen (voller Würfel, alle Seiten spiegeln)
+- Wandspiegel "Mirror" ebenfalls im Tab
+
+Zwei Spiegel gegenüber = Infinite-Mirror-Effekt.
+
+CONFIG (config/mirror.json)
+- reflectionDistanceChunks: Spiegel-Weite
+- recursionDepth: Spiegel-im-Spiegel (höher = Infinite)
+- resolutionScale: Qualität (1.0 = voll)
+- maxRenderPasses: Performance-Budget
