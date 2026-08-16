@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Rageforge Mirror Cube — A Real Mirror for Minecraft</title>
-<meta name="description" content="Rageforge Mirror Cube — a borderless, fully reflective six-sided mirror block for Minecraft 26.2 (Fabric). Real planar reflections. Everything except you.">
-<meta name="theme-color" content="#04070b">
-<meta property="og:title" content="Rageforge Mirror Cube — A Real Mirror for Minecraft">
-<meta property="og:description" content="A borderless six-sided mirror block with true planar reflections for Minecraft 26.2 on Fabric.">
+<title>Rageforge Mirror Cube — real planar reflections for Minecraft</title>
+<meta name="description" content="A borderless six-sided mirror block for Minecraft 26.2 on Fabric. True planar reflections, recursive mirror-in-mirror, Sodium compatible. Free forever, never for sale.">
+<meta name="theme-color" content="#05070a">
+<meta property="og:title" content="Rageforge Mirror Cube">
+<meta property="og:description" content="A borderless six-sided mirror block with true planar reflections for Minecraft 26.2 on Fabric. Free forever.">
 <meta property="og:image" content="assets/screenshot-1.jpg">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
@@ -19,33 +19,34 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/site.css">
 <style>
-  /* ================= hero ================= */
   .hero {
     position: relative;
     min-height: 100svh;
     display: grid;
     grid-template-rows: 1fr auto;
     overflow: hidden;
+    border-bottom: var(--hair) solid var(--line);
   }
+
   .hero-photo {
     position: absolute;
     inset: 0;
     z-index: 0;
     background: url('assets/screenshot-1.jpg') center 38% / cover no-repeat;
-    opacity: 0.17;
-    filter: saturate(1.1);
-    transform: scale(1.06);
+    opacity: 0.15;
+    filter: saturate(1.08);
+    transform: scale(1.05);
   }
+
   .hero-photo::after {
     content: '';
     position: absolute;
     inset: 0;
     background:
-      linear-gradient(to bottom, rgba(4,7,11,0.72) 0%, rgba(4,7,11,0.8) 50%, var(--ink-950) 100%),
-      radial-gradient(ellipse 62% 52% at 50% 44%, transparent 12%, rgba(4,7,11,0.72) 100%);
+      linear-gradient(to bottom, rgba(5,7,10,0.7) 0%, rgba(5,7,10,0.78) 46%, var(--ink-950) 100%),
+      radial-gradient(ellipse 66% 54% at 50% 42%, transparent 10%, rgba(5,7,10,0.74) 100%);
   }
 
-  /* 3D stage */
   .stage {
     position: absolute;
     inset: 0;
@@ -54,436 +55,797 @@
     touch-action: pan-y;
     transition: opacity 0.2s linear;
   }
+
   .stage.grabbing { cursor: grabbing; }
+
   #cube-canvas {
     width: 100%;
     height: 100%;
     opacity: 0;
-    transition: opacity 1.1s var(--ease);
+    transition: opacity 1s var(--ease-out);
   }
+
   #cube-canvas.ready { opacity: 1; }
 
   .hero-copy {
     position: relative;
     z-index: 2;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: calc(var(--nav-h) + 46px) 24px 20px;
+    display: grid;
+    align-content: center;
+    justify-items: start;
+    max-width: var(--maxw);
+    width: 100%;
+    margin: 0 auto;
+    padding: calc(var(--nav-h) + 40px) var(--gutter) 24px;
     pointer-events: none;
   }
+
   .hero-copy > * { pointer-events: auto; }
 
   .eyebrow {
     display: inline-flex;
     align-items: center;
-    gap: 9px;
-    padding: 6px 15px 6px 9px;
-    border: 1px solid var(--line-strong);
-    background: rgba(4,7,11,0.55);
+    gap: 10px;
+    padding: 6px 14px 6px 10px;
+    border: var(--hair) solid var(--line-strong);
+    background: rgba(5,7,10,0.55);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border-radius: 999px;
-    font-size: 0.76rem;
-    font-weight: 650;
-    letter-spacing: 0.05em;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.11em;
     text-transform: uppercase;
     color: var(--sky-bright);
     margin-bottom: 26px;
   }
+
   .eyebrow .dot {
-    width: 7px; height: 7px; border-radius: 50%;
+    width: 6px;
+    height: 6px;
     background: var(--sky);
-    animation: pulse 2.4s ease-in-out infinite;
+    animation: pulse 2.6s ease-in-out infinite;
   }
+
   @keyframes pulse {
-    0%,100% { box-shadow: 0 0 0 3px rgba(148,183,245,0.3); }
-    50%     { box-shadow: 0 0 0 8px rgba(148,183,245,0.03); }
+    0%, 100% { box-shadow: 0 0 0 3px rgba(148,183,245,0.28); }
+    50%      { box-shadow: 0 0 0 7px rgba(148,183,245,0.02); }
   }
 
   .hero h1 {
-    font-size: clamp(2.5rem, 7.2vw, 5.1rem);
-    line-height: 1.0;
-    font-weight: 800;
-    letter-spacing: -0.038em;
-    margin-bottom: 20px;
-    text-shadow: 0 4px 40px rgba(4,7,11,0.9);
+    font-size: clamp(2.4rem, 6.4vw, 6.2rem);
+    line-height: 0.97;
+    font-weight: 780;
+    letter-spacing: -0.042em;
+    margin-bottom: 22px;
+    max-width: 17ch;
+    text-shadow: 0 4px 40px rgba(5,7,10,0.9);
   }
+
   .shine {
-    background: linear-gradient(100deg, var(--silver) 0%, #fff 18%, var(--sky) 46%, #fff 70%, var(--silver) 100%);
-    background-size: 230% auto;
-    -webkit-background-clip: text; background-clip: text; color: transparent;
-    animation: shine 8s linear infinite;
+    background: linear-gradient(100deg, var(--silver) 0%, #fff 16%, var(--sky) 44%, #fff 68%, var(--silver) 100%);
+    background-size: 240% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: shine 9s linear infinite;
   }
-  @keyframes shine { to { background-position: 230% center; } }
+
+  @keyframes shine { to { background-position: 240% center; } }
 
   .hero .lede {
-    font-size: clamp(1.02rem, 2.2vw, 1.24rem);
+    font-size: clamp(1rem, 1.15vw, 1.28rem);
     color: var(--muted);
-    max-width: 580px;
-    margin-bottom: 32px;
-    text-shadow: 0 2px 22px rgba(4,7,11,0.9);
+    max-width: 56ch;
+    margin-bottom: 34px;
+    text-shadow: 0 2px 20px rgba(5,7,10,0.9);
   }
+
   .hero .lede strong { color: var(--silver); font-weight: 600; }
 
-  .cta-row { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+  .cta-row { display: flex; gap: 12px; flex-wrap: wrap; }
 
-  .drag-hint {
-    margin-top: 28px;
-    display: inline-flex;
+  .hero-meta {
+    display: flex;
     align-items: center;
-    gap: 9px;
-    font-size: 0.78rem;
-    color: var(--muted-dim);
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-  }
-  .drag-hint svg { width: 15px; height: 15px; opacity: 0.75; }
-  #face-hint {
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 30px;
     font-family: var(--mono);
-    font-size: 0.72rem;
+    font-size: 0.75rem;
+    color: var(--muted-dim);
+    letter-spacing: 0.03em;
+  }
+
+  .hero-meta .sepbar { width: var(--hair); height: 13px; background: var(--line-strong); }
+
+  .drag-hint { display: inline-flex; align-items: center; gap: 8px; }
+  .drag-hint svg { width: 14px; height: 14px; opacity: 0.7; }
+
+  #face-hint {
     color: var(--sky);
     padding: 2px 8px;
-    border: 1px solid var(--line);
-    border-radius: 6px;
-    background: rgba(4,7,11,0.5);
-    text-transform: none;
-    letter-spacing: 0;
+    border: var(--hair) solid var(--line);
+    background: rgba(5,7,10,0.5);
   }
 
-  /* spec strip pinned to hero bottom */
+  .free-chip { color: var(--green); }
+
   .hero-foot {
     position: relative;
     z-index: 2;
-    padding: 0 24px 26px;
-    display: flex;
-    justify-content: center;
+    max-width: var(--maxw);
+    width: 100%;
+    margin: 0 auto;
+    padding: 0 var(--gutter) 26px;
   }
+
   .spec-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    border: var(--hair) solid var(--line);
+    background: rgba(5,7,10,0.6);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+
+  .spec-strip div {
+    padding: 14px 20px;
+    border-right: var(--hair) solid var(--line);
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    border: 1px solid var(--line);
-    background: rgba(4,7,11,0.62);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border-radius: 14px;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .spec-strip div:last-child { border-right: 0; }
+
+  .spec-strip .k {
+    font-family: var(--mono);
+    font-size: 0.64rem;
+    text-transform: uppercase;
+    letter-spacing: 0.13em;
+    color: var(--muted-dim);
+  }
+
+  .spec-strip .v { color: var(--text); font-weight: 620; font-size: 0.92rem; }
+  .spec-strip .v.live { color: var(--sky-bright); font-family: var(--mono); font-weight: 400; }
+  .spec-strip .v.free { color: var(--green); }
+
+  .split {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr);
+    gap: clamp(28px, 3.6vw, 76px);
+    align-items: center;
+  }
+
+  .split.rev { grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr); }
+
+  @media (max-width: 980px) {
+    .split, .split.rev { grid-template-columns: 1fr; }
+  }
+
+  .viz {
+    position: relative;
+    border: var(--hair) solid var(--line);
+    background:
+      linear-gradient(160deg, rgba(148,183,245,0.05), transparent 60%),
+      rgba(2,4,7,0.55);
+    aspect-ratio: 16 / 11;
     overflow: hidden;
   }
-  .spec-strip div {
-    padding: 12px 20px;
-    border-right: 1px solid var(--line);
-    display: flex; flex-direction: column; gap: 1px;
-    min-width: 112px;
-  }
-  .spec-strip div:last-child { border-right: 0; }
-  .spec-strip .k {
-    font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted-dim);
-  }
-  .spec-strip .v { color: var(--text); font-weight: 650; font-size: 0.9rem; }
-  .spec-strip .v.live { color: var(--sky-bright); }
 
-  /* ================= features ================= */
+  .viz canvas { width: 100%; height: 100%; }
+
+  .viz .viz-tag {
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 7px 13px;
+    font-family: var(--mono);
+    font-size: 0.67rem;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--muted-dim);
+    border-right: var(--hair) solid var(--line);
+    border-bottom: var(--hair) solid var(--line);
+    background: rgba(5,7,10,0.72);
+  }
+
+  .viz .viz-read {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    padding: 7px 13px;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--sky-bright);
+    border-left: var(--hair) solid var(--line);
+    border-top: var(--hair) solid var(--line);
+    background: rgba(5,7,10,0.72);
+  }
+
+  .viz .corner {
+    position: absolute;
+    width: 9px;
+    height: 9px;
+    border: var(--hair) solid var(--line-hot);
+    pointer-events: none;
+  }
+
+  .viz .corner.tr { top: 10px; right: 10px; border-left: 0; border-bottom: 0; }
+  .viz .corner.bl { bottom: 10px; left: 10px; border-right: 0; border-top: 0; }
+
+  .prose h3 {
+    font-size: clamp(1.3rem, 1.9vw, 1.75rem);
+    font-weight: 700;
+    letter-spacing: -0.026em;
+    line-height: 1.16;
+    margin-bottom: 14px;
+  }
+
+  .prose p { color: var(--muted); margin-bottom: 14px; }
+  .prose p strong { color: var(--text); font-weight: 620; }
+  .prose p:last-child { margin-bottom: 0; }
+
+  .prose .num-row {
+    display: flex;
+    gap: clamp(20px, 2.4vw, 44px);
+    flex-wrap: wrap;
+    margin: 24px 0 4px;
+    padding-top: 22px;
+    border-top: var(--hair) solid var(--line);
+  }
+
+  .prose .num-row .n {
+    font-family: var(--mono);
+    font-size: clamp(1.5rem, 2.2vw, 2.05rem);
+    color: var(--text);
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+
+  .prose .num-row .n span { color: var(--sky); font-size: 0.55em; }
+
+  .prose .num-row .l {
+    font-family: var(--mono);
+    font-size: 0.67rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--muted-dim);
+    margin-top: 7px;
+  }
+
   .feature-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(262px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr));
+    gap: var(--hair);
+    background: var(--line);
+    border: var(--hair) solid var(--line);
   }
+
   .feature {
     position: relative;
-    padding: 27px 25px;
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    background: linear-gradient(160deg, var(--panel), rgba(255,255,255,0.012));
+    padding: clamp(24px, 2.2vw, 34px);
+    background: var(--ink-900);
     overflow: hidden;
-    transition: transform 0.35s var(--ease), border-color 0.35s;
+    transition: background 0.3s var(--ease);
   }
+
   .feature::before {
     content: '';
-    position: absolute; inset: 0;
-    background: radial-gradient(340px circle at var(--mx,50%) var(--my,0%), rgba(148,183,245,0.14), transparent 70%);
-    opacity: 0; transition: opacity 0.35s; pointer-events: none;
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(340px circle at var(--mx, 50%) var(--my, 0%), rgba(148,183,245,0.12), transparent 68%);
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
   }
-  .feature:hover { transform: translateY(-5px); border-color: var(--line-strong); }
-  .feature:hover::before { opacity: 1; }
-  .feature .ico {
-    width: 42px; height: 42px;
-    display: grid; place-items: center;
-    border-radius: 11px;
-    background: rgba(148,183,245,0.13);
-    border: 1px solid rgba(148,183,245,0.24);
-    font-size: 1.22rem;
-    margin-bottom: 16px;
-  }
-  .feature h3 { font-size: 1.05rem; font-weight: 650; letter-spacing: -0.014em; margin-bottom: 8px; }
-  .feature p { color: var(--muted); font-size: 0.925rem; line-height: 1.6; }
 
-  /* ================= gallery ================= */
-  .gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px,1fr)); gap: 18px; }
+  .feature:hover { background: var(--ink-850); }
+  .feature:hover::before { opacity: 1; }
+
+  .feature .ix {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    color: var(--sky);
+    letter-spacing: 0.1em;
+    margin-bottom: 18px;
+    display: block;
+  }
+
+  .feature h3 {
+    font-size: 1.04rem;
+    font-weight: 640;
+    letter-spacing: -0.014em;
+    margin-bottom: 9px;
+  }
+
+  .feature p { color: var(--muted); font-size: 0.915rem; line-height: 1.58; }
+
+  .gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+    gap: clamp(14px, 1.4vw, 24px);
+  }
+
   .shot {
-    position: relative; border-radius: var(--radius); overflow: hidden;
-    border: 1px solid var(--line); background: var(--ink-800);
-    cursor: zoom-in; box-shadow: var(--shadow);
-    transition: transform 0.4s var(--ease), border-color 0.4s;
+    position: relative;
+    overflow: hidden;
+    border: var(--hair) solid var(--line);
+    background: var(--ink-800);
+    cursor: zoom-in;
+    transition: border-color 0.35s;
   }
+
   .shot img {
-    width: 100%; aspect-ratio: 16/10; object-fit: cover;
-    transition: transform 0.6s var(--ease);
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+    transition: transform 0.7s var(--ease-out);
   }
-  .shot:hover { transform: translateY(-5px); border-color: rgba(148,183,245,0.45); }
-  .shot:hover img { transform: scale(1.05); }
+
+  .shot:hover { border-color: var(--line-hot); }
+  .shot:hover img { transform: scale(1.04); }
+
   .shot figcaption {
-    position: absolute; left: 0; right: 0; bottom: 0;
-    padding: 36px 18px 15px; font-size: 0.87rem; color: var(--silver);
-    background: linear-gradient(to top, rgba(4,7,11,0.94), transparent);
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 40px 18px 15px;
+    font-size: 0.87rem;
+    color: var(--silver);
+    background: linear-gradient(to top, rgba(5,7,10,0.95), transparent);
   }
+
   .shot .zoom {
-    position: absolute; top: 12px; right: 12px;
-    width: 30px; height: 30px; display: grid; place-items: center;
-    border-radius: 8px; background: rgba(4,7,11,0.7);
-    border: 1px solid var(--line-strong);
-    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-    font-size: 0.78rem; opacity: 0; transition: opacity 0.3s;
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    padding: 4px 9px;
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    background: rgba(5,7,10,0.75);
+    border: var(--hair) solid var(--line-strong);
+    opacity: 0;
+    transition: opacity 0.28s;
   }
+
   .shot:hover .zoom { opacity: 1; }
 
   .lightbox {
-    position: fixed; inset: 0; z-index: 200; display: none; place-items: center;
-    padding: 28px; background: rgba(2,4,7,0.94);
-    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); cursor: zoom-out;
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: none;
+    place-items: center;
+    padding: clamp(14px, 3vw, 44px);
+    background: rgba(2,4,7,0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    cursor: zoom-out;
   }
-  .lightbox.open { display: grid; animation: fade 0.25s ease; }
-  @keyframes fade { from { opacity: 0 } to { opacity: 1 } }
+
+  .lightbox.open { display: grid; animation: fade 0.22s ease; }
+
+  @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+
   .lightbox img {
-    max-width: min(1240px, 96vw); max-height: 88vh;
-    border-radius: 12px; border: 1px solid var(--line-strong);
-    box-shadow: 0 40px 110px -30px #000;
+    max-width: 96vw;
+    max-height: 90vh;
+    border: var(--hair) solid var(--line-strong);
   }
+
   .lightbox .x {
-    position: absolute; top: 20px; right: 26px;
-    font-size: 1.7rem; color: var(--muted); cursor: pointer; line-height: 1;
+    position: absolute;
+    top: 18px;
+    right: 24px;
+    font-family: var(--mono);
+    font-size: 1.1rem;
+    color: var(--muted);
+    cursor: pointer;
   }
+
   .lightbox .x:hover { color: #fff; }
 
-  /* ================= downloads ================= */
   .dl-hero {
-    border: 1px solid rgba(148,183,245,0.28);
-    border-radius: var(--radius-lg);
+    border: var(--hair) solid var(--line-hot);
     background:
-      linear-gradient(150deg, rgba(148,183,245,0.11), rgba(148,183,245,0.02) 55%, transparent),
-      rgba(255,255,255,0.014);
-    padding: 30px 32px;
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 26px; flex-wrap: wrap;
+      linear-gradient(150deg, rgba(148,183,245,0.1), rgba(148,183,245,0.015) 55%, transparent),
+      rgba(255,255,255,0.012);
+    padding: clamp(24px, 2.4vw, 36px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 28px;
+    flex-wrap: wrap;
     margin-bottom: 18px;
   }
-  .dl-hero .meta { display: flex; flex-direction: column; gap: 6px; min-width: 240px; }
-  .dl-hero .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+  .dl-hero .meta { display: flex; flex-direction: column; gap: 7px; min-width: 260px; }
+  .dl-hero .row { display: flex; align-items: center; gap: 11px; flex-wrap: wrap; }
+
   .dl-hero .ver {
-    font-family: var(--mono); font-size: 1.6rem; font-weight: 500;
-    color: var(--text); letter-spacing: -0.02em;
+    font-family: var(--mono);
+    font-size: clamp(1.4rem, 2vw, 1.9rem);
+    font-weight: 500;
+    color: var(--text);
+    letter-spacing: -0.02em;
   }
+
   .pill {
-    font-size: 0.66rem; font-weight: 750; letter-spacing: 0.09em; text-transform: uppercase;
-    padding: 3px 9px; border-radius: 999px;
+    font-family: var(--mono);
+    font-size: 0.64rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border: var(--hair) solid transparent;
   }
-  .pill.latest { background: rgba(134,224,168,0.16); color: var(--green); border: 1px solid rgba(134,224,168,0.32); }
-  .pill.pre    { background: rgba(240,182,74,0.14); color: var(--amber-soft); border: 1px solid rgba(240,182,74,0.3); }
-  .dl-hero .sub { color: var(--muted); font-size: 0.9rem; }
+
+  .pill.latest { background: rgba(134,224,168,0.13); color: var(--green); border-color: rgba(134,224,168,0.3); }
+  .pill.pre { background: rgba(240,182,74,0.12); color: var(--amber-soft); border-color: rgba(240,182,74,0.28); }
+  .dl-hero .sub { color: var(--muted); font-size: 0.89rem; }
   .dl-hero .acts { display: flex; gap: 10px; flex-wrap: wrap; }
 
-  .ver-list { display: grid; gap: 10px; }
+  .ver-list { display: grid; gap: var(--hair); background: var(--line); border: var(--hair) solid var(--line); }
+
   .ver-row {
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 16px; flex-wrap: wrap;
-    padding: 15px 20px;
-    border: 1px solid var(--line); border-radius: 13px;
-    background: var(--panel);
-    transition: border-color 0.3s, background 0.3s, transform 0.3s var(--ease);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    flex-wrap: wrap;
+    padding: 16px 22px;
+    background: var(--ink-900);
+    transition: background 0.25s;
   }
-  .ver-row:hover { border-color: var(--line-strong); background: var(--panel-strong); transform: translateX(3px); }
-  .ver-row .l { display: flex; align-items: center; gap: 13px; flex-wrap: wrap; }
-  .ver-row .tag-v { font-family: var(--mono); font-size: 0.95rem; color: var(--sky-bright); }
-  .ver-row .date { color: var(--muted-dim); font-size: 0.84rem; }
-  .ver-row .r { display: flex; align-items: center; gap: 12px; }
-  .ver-row a.get { color: var(--muted); font-size: 0.86rem; font-weight: 600; transition: color 0.2s; }
+
+  .ver-row:hover { background: var(--ink-850); }
+  .ver-row .l { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .ver-row .tag-v { font-family: var(--mono); font-size: 0.94rem; color: var(--sky-bright); }
+  .ver-row .date { color: var(--muted-dim); font-size: 0.82rem; font-family: var(--mono); }
+  .ver-row .r { display: flex; align-items: center; gap: 14px; }
+  .ver-row a.get { color: var(--muted); font-size: 0.85rem; font-weight: 600; transition: color 0.2s; }
   .ver-row a.get:hover { color: var(--sky-bright); }
-  .ver-empty { color: var(--muted-dim); font-size: 0.9rem; padding: 18px 20px; border: 1px dashed var(--line); border-radius: 13px; }
+
+  .ver-empty {
+    color: var(--muted-dim);
+    font-size: 0.89rem;
+    padding: 20px 22px;
+    background: var(--ink-900);
+  }
+
+  .ver-skel { padding: 16px 22px; background: var(--ink-900); }
+
+  .ver-skel i {
+    display: block;
+    height: 11px;
+    width: 38%;
+    background: linear-gradient(90deg, rgba(255,255,255,0.05), rgba(255,255,255,0.11), rgba(255,255,255,0.05));
+    background-size: 220% 100%;
+    animation: skel 1.3s linear infinite;
+  }
+
+  @keyframes skel { to { background-position: -220% 0; } }
 
   .hub-note {
-    margin-top: 20px; padding: 18px 22px;
-    border: 1px dashed var(--line-strong); border-radius: 13px;
-    background: rgba(148,183,245,0.045);
-    color: var(--muted); font-size: 0.92rem;
+    margin-top: 20px;
+    padding: 20px 24px;
+    border: var(--hair) dashed var(--line-strong);
+    background: rgba(148,183,245,0.035);
+    color: var(--muted);
+    font-size: 0.9rem;
   }
-  .hub-note strong { color: var(--sky-bright); }
 
-  /* ================= warning ================= */
+  .hub-note strong { color: var(--sky-bright); }
+  .hub-note code { font-family: var(--mono); font-size: 0.88em; color: var(--sky-bright); }
+
   .warn {
     position: relative;
-    border: 1px solid rgba(240,182,74,0.3);
-    border-radius: var(--radius);
-    background: linear-gradient(150deg, rgba(240,182,74,0.11), rgba(240,182,74,0.03) 60%, transparent), rgba(255,255,255,0.012);
-    padding: 32px 34px;
-    display: flex; gap: 22px; align-items: flex-start; overflow: hidden;
+    border: var(--hair) solid rgba(240,182,74,0.3);
+    background:
+      linear-gradient(150deg, rgba(240,182,74,0.1), rgba(240,182,74,0.02) 58%, transparent),
+      rgba(255,255,255,0.012);
+    padding: clamp(24px, 2.6vw, 38px);
+    display: flex;
+    gap: clamp(18px, 1.8vw, 26px);
+    align-items: flex-start;
+    overflow: hidden;
   }
-  .warn::before {
-    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
-    background: linear-gradient(to bottom, var(--amber), rgba(240,182,74,0.12));
-  }
-  .warn .bang {
-    flex-shrink: 0; width: 46px; height: 46px;
-    display: grid; place-items: center; border-radius: 12px;
-    background: rgba(240,182,74,0.16); border: 1px solid rgba(240,182,74,0.32);
-    font-size: 1.35rem;
-  }
-  .warn h3 { font-size: 1.15rem; color: var(--amber-soft); font-weight: 700; letter-spacing: -0.016em; margin-bottom: 10px; }
-  .warn p { color: #dcc9a4; font-size: 0.955rem; margin-bottom: 11px; }
-  .warn p:last-child { margin-bottom: 0; }
-  .warn code {
-    font-family: var(--mono); font-size: 0.86em;
-    background: rgba(240,182,74,0.14); color: var(--amber-soft);
-    padding: 2px 7px; border-radius: 5px;
-  }
-  @media (max-width: 620px) { .warn { flex-direction: column; gap: 16px; padding: 26px 22px; } }
 
-  /* ================= config ================= */
-  .cfg-wrap { display: grid; grid-template-columns: minmax(0,0.88fr) minmax(0,1.12fr); gap: 18px; align-items: start; }
-  @media (max-width: 920px) { .cfg-wrap { grid-template-columns: 1fr; } }
+  .warn::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--amber), rgba(240,182,74,0.1));
+  }
+
+  .warn .bang {
+    flex-shrink: 0;
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    background: rgba(240,182,74,0.14);
+    border: var(--hair) solid rgba(240,182,74,0.3);
+    font-size: 1.25rem;
+    color: var(--amber-soft);
+  }
+
+  .warn h3 {
+    font-size: 1.14rem;
+    color: var(--amber-soft);
+    font-weight: 690;
+    letter-spacing: -0.018em;
+    margin-bottom: 11px;
+  }
+
+  .warn p { color: #dcc9a4; font-size: 0.945rem; margin-bottom: 11px; }
+  .warn p:last-child { margin-bottom: 0; }
+
+  .warn code {
+    font-family: var(--mono);
+    font-size: 0.86em;
+    background: rgba(240,182,74,0.13);
+    color: var(--amber-soft);
+    padding: 2px 7px;
+  }
+
+  @media (max-width: 640px) { .warn { flex-direction: column; gap: 16px; } }
+
+  .cfg-wrap {
+    display: grid;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    gap: clamp(16px, 1.6vw, 26px);
+    align-items: start;
+  }
+
+  @media (max-width: 980px) { .cfg-wrap { grid-template-columns: 1fr; } }
 
   .code-card {
-    border: 1px solid var(--line); border-radius: var(--radius);
-    background: rgba(2,4,7,0.75); overflow: hidden;
-    position: sticky; top: calc(var(--nav-h) + 20px);
+    border: var(--hair) solid var(--line);
+    background: rgba(2,4,7,0.72);
+    position: sticky;
+    top: calc(var(--nav-h) + 18px);
   }
-  @media (max-width: 920px) { .code-card { position: static; } }
+
+  @media (max-width: 980px) { .code-card { position: static; } }
+
   .code-head {
-    display: flex; align-items: center; justify-content: space-between; gap: 12px;
-    padding: 11px 15px; border-bottom: 1px solid var(--line);
-    background: rgba(255,255,255,0.026);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 11px 16px;
+    border-bottom: var(--hair) solid var(--line);
+    background: rgba(255,255,255,0.022);
   }
+
   .code-head .file {
-    font-family: var(--mono); font-size: 0.79rem; color: var(--muted);
-    display: flex; align-items: center; gap: 8px;
+    font-family: var(--mono);
+    font-size: 0.77rem;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 9px;
   }
+
   .code-head .file::before {
-    content: ''; width: 8px; height: 8px; border-radius: 50%;
-    background: var(--sky); box-shadow: 0 0 8px var(--sky);
+    content: '';
+    width: 7px;
+    height: 7px;
+    background: var(--sky);
+    box-shadow: 0 0 7px var(--sky);
   }
+
   .copy-btn {
-    font-family: inherit; font-size: 0.75rem; font-weight: 650;
-    color: var(--muted); background: var(--panel);
-    border: 1px solid var(--line); border-radius: 7px;
-    padding: 5px 11px; cursor: pointer;
+    font-family: var(--mono);
+    font-size: 0.71rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    background: var(--panel);
+    border: var(--hair) solid var(--line);
+    padding: 5px 11px;
+    cursor: pointer;
     transition: color 0.2s, border-color 0.2s, background 0.2s;
   }
+
   .copy-btn:hover { color: var(--text); border-color: var(--line-strong); background: var(--panel-strong); }
   .copy-btn.done { color: var(--green); border-color: rgba(134,224,168,0.4); }
-  pre { padding: 19px 20px; overflow-x: auto; font-family: var(--mono); font-size: 0.84rem; line-height: 1.85; }
+
+  pre {
+    padding: 20px;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: clamp(0.76rem, 0.62vw, 0.87rem);
+    line-height: 1.9;
+    color: #c9d4e4;
+  }
+
   pre .k { color: var(--sky-bright); }
   pre .n { color: var(--amber); }
   pre .p { color: var(--muted-dim); }
 
-  .cfg-list { display: grid; gap: 10px; }
+  .cfg-list { display: grid; gap: var(--hair); background: var(--line); border: var(--hair) solid var(--line); }
+
   .cfg-item {
-    border: 1px solid var(--line); border-radius: 13px;
-    background: var(--panel); padding: 17px 20px;
-    transition: border-color 0.3s, background 0.3s;
+    background: var(--ink-900);
+    padding: 18px 22px;
+    transition: background 0.25s;
   }
-  .cfg-item:hover { border-color: var(--line-strong); background: var(--panel-strong); }
+
+  .cfg-item:hover { background: var(--ink-850); }
+
   .cfg-item .top {
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 12px; flex-wrap: wrap; margin-bottom: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
   }
-  .cfg-item .key { font-family: var(--mono); font-size: 0.875rem; color: var(--sky-bright); }
+
+  .cfg-item .key { font-family: var(--mono); font-size: 0.87rem; color: var(--sky-bright); }
+
   .impact {
-    font-size: 0.645rem; font-weight: 750; letter-spacing: 0.08em; text-transform: uppercase;
-    padding: 3px 9px; border-radius: 999px; white-space: nowrap;
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    white-space: nowrap;
+    border: var(--hair) solid transparent;
   }
-  .impact.high { background: rgba(240,120,90,0.16); color: #ffb49c; border: 1px solid rgba(240,120,90,0.3); }
-  .impact.mid  { background: rgba(240,182,74,0.14); color: var(--amber-soft); border: 1px solid rgba(240,182,74,0.28); }
-  .impact.low  { background: rgba(134,224,168,0.13); color: #9fe7bb; border: 1px solid rgba(134,224,168,0.26); }
-  .cfg-item p { color: var(--muted); font-size: 0.905rem; line-height: 1.58; }
+
+  .impact.high { background: rgba(240,120,90,0.14); color: #ffb49c; border-color: rgba(240,120,90,0.28); }
+  .impact.mid { background: rgba(240,182,74,0.12); color: var(--amber-soft); border-color: rgba(240,182,74,0.26); }
+  .impact.low { background: rgba(134,224,168,0.11); color: #9fe7bb; border-color: rgba(134,224,168,0.24); }
+  .cfg-item p { color: var(--muted); font-size: 0.9rem; line-height: 1.56; }
+
   .cfg-item .hint {
-    margin-top: 8px; font-size: 0.845rem; color: var(--muted-dim);
-    padding-left: 11px; border-left: 2px solid var(--line-strong);
+    margin-top: 9px;
+    font-size: 0.835rem;
+    color: var(--muted-dim);
+    padding-left: 12px;
+    border-left: 2px solid var(--line-strong);
   }
+
   .tip {
-    margin-top: 22px; padding: 18px 22px;
-    border: 1px dashed var(--line-strong); border-radius: 13px;
-    background: rgba(148,183,245,0.05); color: var(--muted); font-size: 0.93rem;
+    margin-top: 22px;
+    padding: 20px 24px;
+    border: var(--hair) dashed var(--line-strong);
+    background: rgba(148,183,245,0.04);
+    color: var(--muted);
+    font-size: 0.91rem;
   }
+
   .tip strong { color: var(--sky-bright); }
+  .tip a { color: var(--sky-bright); border-bottom: var(--hair) solid rgba(188,212,255,0.3); }
 
-  /* ================= steps ================= */
-  .steps { display: grid; gap: 11px; counter-reset: s; }
+  .steps { display: grid; gap: var(--hair); background: var(--line); border: var(--hair) solid var(--line); counter-reset: st; }
+
   .step {
-    display: flex; gap: 17px; align-items: flex-start;
-    padding: 19px 23px; border: 1px solid var(--line); border-radius: 13px;
-    background: var(--panel);
-    transition: border-color 0.3s, transform 0.3s var(--ease), background 0.3s;
+    display: flex;
+    gap: 18px;
+    align-items: flex-start;
+    padding: 20px 24px;
+    background: var(--ink-900);
+    transition: background 0.25s;
   }
-  .step:hover { border-color: var(--line-strong); background: var(--panel-strong); transform: translateX(3px); }
+
+  .step:hover { background: var(--ink-850); }
+
   .step .n {
-    counter-increment: s; flex-shrink: 0;
-    width: 29px; height: 29px; display: grid; place-items: center;
-    border-radius: 9px; background: rgba(148,183,245,0.14);
-    border: 1px solid rgba(148,183,245,0.26);
-    color: var(--sky-bright); font-weight: 700; font-size: 0.83rem; font-family: var(--mono);
+    counter-increment: st;
+    flex-shrink: 0;
+    width: 26px;
+    height: 26px;
+    display: grid;
+    place-items: center;
+    background: rgba(148,183,245,0.12);
+    border: var(--hair) solid rgba(148,183,245,0.26);
+    color: var(--sky-bright);
+    font-family: var(--mono);
+    font-size: 0.76rem;
   }
-  .step .n::before { content: counter(s); }
-  .step .body strong { display: block; font-weight: 620; margin-bottom: 3px; font-size: 0.98rem; }
+
+  .step .n::before { content: counter(st, decimal-leading-zero); }
+  .step .body strong { display: block; font-size: 0.98rem; font-weight: 630; margin-bottom: 4px; }
   .step .body span { color: var(--muted); font-size: 0.9rem; }
-  .step code {
-    font-family: var(--mono); font-size: 0.85em;
-    background: rgba(255,255,255,0.07); color: var(--sky-bright);
-    padding: 2px 6px; border-radius: 5px;
+  .step .body code { font-family: var(--mono); font-size: 0.86em; color: var(--sky-bright); }
+
+  .compat { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: var(--hair); background: var(--line); border: var(--hair) solid var(--line); }
+
+  .cc { padding: clamp(24px, 2.2vw, 34px); background: var(--ink-900); }
+
+  .cc .hdr {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 1.05rem;
+    font-weight: 660;
+    margin-bottom: 12px;
   }
 
-  /* ================= compat ================= */
-  .compat { display: grid; grid-template-columns: repeat(auto-fit, minmax(285px,1fr)); gap: 16px; }
-  .cc { padding: 24px 25px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--panel); }
-  .cc.yes { border-color: rgba(134,224,168,0.28); background: linear-gradient(150deg, rgba(134,224,168,0.07), transparent 70%); }
-  .cc.no  { border-color: rgba(240,120,90,0.28);  background: linear-gradient(150deg, rgba(240,120,90,0.07), transparent 70%); }
-  .cc .hdr { display: flex; align-items: center; gap: 11px; font-weight: 700; font-size: 1.03rem; margin-bottom: 10px; letter-spacing: -0.012em; }
-  .cc .mark { width: 26px; height: 26px; display: grid; place-items: center; border-radius: 7px; font-size: 0.84rem; font-weight: 800; }
-  .cc.yes .mark { background: rgba(134,224,168,0.18); color: var(--green); }
-  .cc.no .mark  { background: rgba(240,120,90,0.18);  color: #ffb49c; }
-  .cc p { color: var(--muted); font-size: 0.91rem; }
+  .cc .mark {
+    width: 24px;
+    height: 24px;
+    display: grid;
+    place-items: center;
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    border: var(--hair) solid transparent;
+  }
 
-  /* ================= cta band ================= */
-  .cta-band { max-width: var(--maxw); margin: 26px auto 0; padding: 0 24px; }
-  .cta-band-inner {
-    position: relative; text-align: center; padding: 62px 30px;
-    border: 1px solid var(--line-strong); border-radius: var(--radius-lg);
-    overflow: hidden; background: rgba(11,16,23,0.62);
-  }
-  .cta-band-inner .bg {
-    position: absolute; inset: 0;
-    background: url('assets/screenshot-2.jpg') center / cover no-repeat;
-    opacity: 0.19;
-  }
-  .cta-band-inner .bg::after {
-    content: ''; position: absolute; inset: 0;
-    background: radial-gradient(ellipse 72% 82% at 50% 50%, rgba(4,7,11,0.58), rgba(4,7,11,0.94));
-  }
-  .cta-band-inner .fg { position: relative; z-index: 1; }
-  .cta-band-inner h2 { font-size: clamp(1.6rem,4vw,2.35rem); font-weight: 780; letter-spacing: -0.03em; margin-bottom: 12px; }
-  .cta-band-inner p { color: var(--muted); margin-bottom: 26px; }
+  .cc.yes .mark { color: var(--green); background: rgba(134,224,168,0.13); border-color: rgba(134,224,168,0.3); }
+  .cc.no .mark { color: var(--red); background: rgba(240,120,90,0.13); border-color: rgba(240,120,90,0.3); }
+  .cc p { color: var(--muted); font-size: 0.915rem; line-height: 1.6; }
 
-  /* credits */
-  .credits { display: grid; gap: 11px; }
+  .credits { display: grid; gap: var(--hair); background: var(--line); border: var(--hair) solid var(--line); }
+
   .credit {
-    display: flex; gap: 14px; align-items: flex-start;
-    padding: 18px 22px; border: 1px solid var(--line); border-radius: 13px;
-    background: var(--panel); font-size: 0.93rem; color: var(--muted);
+    display: flex;
+    gap: 15px;
+    align-items: flex-start;
+    padding: 19px 24px;
+    background: var(--ink-900);
+    color: var(--muted);
+    font-size: 0.92rem;
   }
-  .credit .g { color: var(--sky); flex-shrink: 0; }
-  .credit a { color: var(--sky-bright); border-bottom: 1px solid rgba(185,210,255,0.35); }
-  .credit a:hover { border-bottom-color: var(--sky-bright); }
-  .credit strong { color: var(--text); }
+
+  .credit .g { color: var(--sky); font-family: var(--mono); flex-shrink: 0; }
+  .credit strong { color: var(--text); font-weight: 620; }
+  .credit a { color: var(--sky-bright); border-bottom: var(--hair) solid rgba(188,212,255,0.3); }
+
+  .cta-band { max-width: var(--maxw); margin: 0 auto; padding: 0 var(--gutter) clamp(60px, 6vw, 110px); }
+
+  .cta-band-inner {
+    position: relative;
+    border: var(--hair) solid var(--line-strong);
+    overflow: hidden;
+    padding: clamp(44px, 5vw, 92px) clamp(24px, 3vw, 56px);
+    text-align: center;
+    background: rgba(2,4,7,0.5);
+  }
+
+  .cta-band-inner .bg {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(700px 340px at 50% 0%, rgba(148,183,245,0.14), transparent 70%),
+      linear-gradient(160deg, rgba(255,255,255,0.02), transparent 60%);
+  }
+
+  .cta-band-inner .fg { position: relative; }
+
+  .cta-band-inner h2 {
+    font-size: clamp(1.7rem, 3vw, 2.7rem);
+    font-weight: 740;
+    letter-spacing: -0.032em;
+    line-height: 1.1;
+    margin-bottom: 14px;
+  }
+
+  .cta-band-inner p { color: var(--muted); margin-bottom: 28px; }
+  .cta-band-inner .cta-row { justify-content: center; }
+
+  .cta-band-inner .fine {
+    margin-top: 26px;
+    font-family: var(--mono);
+    font-size: 0.73rem;
+    letter-spacing: 0.06em;
+    color: var(--muted-dim);
+  }
+
+  .cta-band-inner .fine b { color: var(--green); font-weight: 500; }
 </style>
 </head>
 <body>
@@ -498,178 +860,371 @@
       Rageforge <span class="sep">/</span> <span class="sub">Mirror Cube</span>
     </a>
     <div class="nav-links">
+      <a href="#how">How it works</a>
       <a href="#features">Features</a>
-      <a href="#gallery">Gallery</a>
       <a href="#downloads">Versions</a>
       <a href="#performance">Performance</a>
+      <a href="#license">License</a>
       <a href="docs.html">Docs</a>
       <a class="nav-cta" href="https://github.com/TheRealDevCH/Rageforge-Spiegelwuerfel/releases/latest">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-        Latest
+        Download
       </a>
     </div>
   </div>
 </nav>
 
-<header class="hero" id="top">
-  <div class="hero-photo"></div>
-  <div class="stage" id="stage"><canvas id="cube-canvas"></canvas></div>
+<main id="top">
 
-  <div class="hero-copy">
-    <span class="eyebrow"><span class="dot"></span>Fabric · Minecraft 26.2</span>
-    <h1>A real mirror<br><span class="shine">for Minecraft.</span></h1>
-    <p class="lede">
-      A borderless cube that reflects the world on <strong>all six faces</strong> in real time —
-      terrain, mobs, sky, other mirrors. Everything, <strong>except you</strong>.
-    </p>
-    <div class="cta-row">
-      <a class="btn btn-primary" href="https://github.com/TheRealDevCH/Rageforge-Spiegelwuerfel/releases/latest">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-        Download latest
-      </a>
-      <a class="btn btn-ghost" href="docs.html">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
-        How it works
-      </a>
+  <header class="hero">
+    <div class="hero-photo"></div>
+    <div class="stage">
+      <canvas id="cube-canvas"></canvas>
     </div>
-    <div class="drag-hint">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 12h8M12 8v8"/><circle cx="12" cy="12" r="9"/></svg>
-      Drag the cube
-      <span id="face-hint">Front face</span>
+
+    <div class="hero-copy">
+      <span class="eyebrow"><span class="dot"></span> Minecraft 26.2 · Fabric · free forever</span>
+      <h1>A mirror that <span class="shine">actually reflects</span>.</h1>
+      <p class="lede">
+        A borderless, six-sided mirror block that renders the world a second time from a mirrored camera.
+        Real parallax, real geometry, real mirror-in-mirror recursion — <strong>everything except you</strong>.
+      </p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="https://github.com/TheRealDevCH/Rageforge-Spiegelwuerfel/releases/latest">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+          Download latest
+        </a>
+        <a class="btn btn-ghost" href="docs.html">Read the docs</a>
+      </div>
+      <div class="hero-meta">
+        <span class="drag-hint">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 00-2 2v4M15 3h4a2 2 0 012 2v4M9 21H5a2 2 0 01-2-2v-4M15 21h4a2 2 0 002-2v-4"/></svg>
+          Drag to orbit
+        </span>
+        <span class="sepbar"></span>
+        <span id="face-hint">front face</span>
+        <span class="sepbar"></span>
+        <span class="free-chip">Free · never for sale</span>
+      </div>
     </div>
-  </div>
 
-  <div class="hero-foot">
-    <div class="spec-strip">
-      <div><span class="k">Minecraft</span><span class="v">26.2</span></div>
-      <div><span class="k">Loader</span><span class="v">Fabric 0.19+</span></div>
-      <div><span class="k">Java</span><span class="v">25+</span></div>
-      <div><span class="k">Latest</span><span class="v live" id="spec-latest">…</span></div>
-      <div><span class="k">Price</span><span class="v">Free</span></div>
+    <div class="hero-foot">
+      <div class="spec-strip">
+        <div><span class="k">Minecraft</span><span class="v">26.2</span></div>
+        <div><span class="k">Loader</span><span class="v">Fabric 0.19+</span></div>
+        <div><span class="k">Java</span><span class="v">25+</span></div>
+        <div><span class="k">Latest</span><span class="v live" id="spec-latest">…</span></div>
+        <div><span class="k">Sodium</span><span class="v">supported</span></div>
+        <div><span class="k">Price</span><span class="v free">€0.00</span></div>
+      </div>
     </div>
-  </div>
-</header>
+  </header>
 
-<main>
-
-  <section class="block" id="features">
+  <section class="block" id="how">
     <div class="section-head reveal">
-      <span class="tag">What it does</span>
-      <h2>Six reflective faces, no frame.</h2>
-      <p>Not a texture trick. The mod renders the scene a second time from the mirror's point of view, so reflections move, parallax and stack exactly like the real thing.</p>
+      <span class="tag">How it works</span>
+      <h2>Not a texture. A second render of your world.</h2>
+      <p>
+        A flat mirror is optically identical to a window into a mirrored copy of the room. So instead of faking
+        a highlight, the mod moves the camera to the reflected position and draws the world again.
+      </p>
     </div>
-    <div class="feature-grid">
-      <div class="feature reveal">
-        <div class="ico">🧊</div>
-        <h3>Full cube reflection</h3>
-        <p>All six sides mirror independently. Walk around it and the reflection follows you from every angle — no fixed front.</p>
+
+    <div class="split">
+      <div class="viz reveal-scale">
+        <canvas id="plane-canvas"></canvas>
+        <span class="viz-tag">Fig. 01 — reflected camera</span>
+        <span class="viz-read">live</span>
+        <span class="corner tr"></span>
+        <span class="corner bl"></span>
       </div>
-      <div class="feature reveal">
-        <div class="ico">👤</div>
-        <h3>You stay invisible</h3>
-        <p>World, mobs and blocks appear in the reflection; your own player model never does. A mirror that refuses to show you.</p>
-      </div>
-      <div class="feature reveal">
-        <div class="ico">♾️</div>
-        <h3>Recursive mirrors</h3>
-        <p>Face two cubes at each other and the reflection re-enters itself, as deep as <span class="inline-code">recursionDepth</span> allows.</p>
-      </div>
-      <div class="feature reveal">
-        <div class="ico">🎛️</div>
-        <h3>Tunable to your rig</h3>
-        <p>Seven values in one JSON file trade visual depth against framerate — from potato-safe to showcase quality.</p>
-      </div>
-      <div class="feature reveal">
-        <div class="ico">🧱</div>
-        <h3>Classic wall mirror too</h3>
-        <p>Besides the cube you get the original flat, horizontally-facing mirror block for interiors and builds.</p>
-      </div>
-      <div class="feature reveal">
-        <div class="ico">⚡</div>
-        <h3>Sodium compatible</h3>
-        <p>During a reflection pass the mod points Sodium's terrain projection at the mirror's oblique frustum, then restores it.</p>
+      <div class="prose reveal">
+        <h3>The camera is mirrored across the plane</h3>
+        <p>
+          Every mirror surface is a plane: a centre point and a normal. The eye position is reflected across it,
+          the view direction is reflected the same way, and the result is a camera whose view <strong>is</strong>
+          the reflection — no approximation involved.
+        </p>
+        <p>
+          Because the reflection comes from a real camera, it has real parallax. Step sideways and the reflected
+          scene shifts exactly as it should. Grazing angles stay correct, which is where screen-space tricks fall apart.
+        </p>
+        <p>
+          Geometry behind the glass is removed by skewing the near clip plane onto the mirror surface, so the GPU
+          clips it for free.
+        </p>
+        <div class="num-row">
+          <div>
+            <div class="n"><span data-count="14">0</span></div>
+            <div class="l">Client mixins</div>
+          </div>
+          <div>
+            <div class="n"><span data-count="6">0</span></div>
+            <div class="l">Reflective faces</div>
+          </div>
+          <div>
+            <div class="n">0<span>ms</span></div>
+            <div class="l">Clip cost</div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
 
-  <section class="block" id="gallery">
+  <div class="rule"><i></i></div>
+
+  <section class="block">
+    <div class="split rev">
+      <div class="prose reveal">
+        <h3>Mirrors can see mirrors, so recursion is bounded</h3>
+        <p>
+          Two mirrors facing each other are mathematically an infinite series. The mod bounds it with four
+          independent limits: how many surfaces are drawn, how deep the chain goes, how many children each
+          reflection may spawn, and an absolute per-frame ceiling.
+        </p>
+        <p>
+          The branching factor is the dangerous one — it grows exponentially. Depth is comparatively cheap.
+          That separation is why there are four dials instead of one quality slider.
+        </p>
+        <p>
+          Every dial lives in <span class="inline-code">config/mirror.json</span> and takes effect on restart.
+        </p>
+        <div class="num-row">
+          <div>
+            <div class="n">4</div>
+            <div class="l">Default depth</div>
+          </div>
+          <div>
+            <div class="n">48</div>
+            <div class="l">Pass ceiling</div>
+          </div>
+          <div>
+            <div class="n"><span id="depth-live">7</span></div>
+            <div class="l">Depth shown</div>
+          </div>
+        </div>
+      </div>
+      <div class="viz reveal-scale">
+        <canvas id="recursion-canvas"></canvas>
+        <span class="viz-tag">Fig. 02 — recursion depth</span>
+        <span class="viz-read">live</span>
+        <span class="corner tr"></span>
+        <span class="corner bl"></span>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="features">
     <div class="section-head reveal">
-      <span class="tag">Gallery</span>
-      <h2>In-game, unedited.</h2>
-      <p>Screenshots straight out of Minecraft 26.2 with the Mirror Cube placed in the world.</p>
+      <span class="tag">Features</span>
+      <h2>What you get.</h2>
+    </div>
+    <div class="feature-grid">
+      <div class="feature reveal">
+        <span class="ix">01</span>
+        <h3>Six reflective faces</h3>
+        <p>No frame, no trim, no front. Every side of the cube is a full mirror surface with its own reflected camera.</p>
+      </div>
+      <div class="feature reveal">
+        <span class="ix">02</span>
+        <h3>True planar reflections</h3>
+        <p>Geometrically exact with real parallax. Terrain, mobs, other players and the sky all appear correctly.</p>
+      </div>
+      <div class="feature reveal">
+        <span class="ix">03</span>
+        <h3>Recursive mirror-in-mirror</h3>
+        <p>Place two cubes facing each other and the reflection nests up to your configured depth.</p>
+      </div>
+      <div class="feature reveal">
+        <span class="ix">04</span>
+        <h3>You are not in it</h3>
+        <p>The reflection uses your own camera, which never draws your body. The world reflects; you do not.</p>
+      </div>
+      <div class="feature reveal">
+        <span class="ix">05</span>
+        <h3>Sodium compatible</h3>
+        <p>The mod redirects Sodium's terrain projection during the pass and restores it afterwards.</p>
+      </div>
+      <div class="feature reveal">
+        <span class="ix">06</span>
+        <h3>Seven performance dials</h3>
+        <p>Resolution, depth, branching, pass ceiling, reach and fog — all in one small JSON file.</p>
+      </div>
+      <div class="feature reveal">
+        <span class="ix">07</span>
+        <h3>In-game settings</h3>
+        <p>Optional Mod Menu and Cloth Config integration. The JSON file alone is enough.</p>
+      </div>
+      <div class="feature reveal">
+        <span class="ix">08</span>
+        <h3>Free and open</h3>
+        <p>MIT reflection engine, free distribution, no paywall, no premium tier. Selling it is not permitted.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="section-head reveal">
+      <span class="tag">In game</span>
+      <h2>Captured in a live world.</h2>
+      <p>Real screenshots at default settings — no post-processing, no shader pack.</p>
     </div>
     <div class="gallery">
       <figure class="shot reveal-scale" data-full="assets/screenshot-1.jpg">
-        <span class="zoom">⤢</span>
-        <img src="assets/screenshot-1.jpg" alt="Mirror Cube reflecting terrain and sky in Minecraft" loading="lazy">
-        <figcaption>The cube picking up terrain, sky and light from every side.</figcaption>
+        <img src="assets/screenshot-1.jpg" alt="Mirror Cube reflecting terrain in a Minecraft world">
+        <span class="zoom">Expand</span>
+        <figcaption>Terrain, sky and lighting reflected from the mirrored camera.</figcaption>
       </figure>
       <figure class="shot reveal-scale" data-full="assets/screenshot-2.jpg">
-        <span class="zoom">⤢</span>
-        <img src="assets/screenshot-2.jpg" alt="Mirror Cube reflection detail in Minecraft" loading="lazy">
-        <figcaption>Reflections update live as you move around the block.</figcaption>
+        <img src="assets/screenshot-2.jpg" alt="Mirror Cube showing recursive reflections">
+        <span class="zoom">Expand</span>
+        <figcaption>Recursive reflection between facing surfaces at default depth.</figcaption>
       </figure>
     </div>
   </section>
 
   <section class="block" id="downloads">
     <div class="section-head reveal">
-      <span class="tag">Downloads</span>
-      <h2>Every version, one place.</h2>
-      <p>All builds live in the release hub. This list is pulled live from GitHub, so the newest version shows up here the moment it is published.</p>
+      <span class="tag">Versions</span>
+      <h2>Every build, always the latest.</h2>
+      <p>
+        Read live from the GitHub Releases API. Publishing a release is the only step needed for it to
+        appear here — the site never needs an edit.
+      </p>
     </div>
 
-    <div class="dl-hero reveal" id="dl-hero">
+    <div class="dl-hero reveal">
       <div class="meta">
         <div class="row">
-          <span class="ver" id="dl-ver">Loading…</span>
+          <span class="ver" id="dl-ver">…</span>
           <span class="pill latest" id="dl-pill">Latest</span>
         </div>
-        <span class="sub" id="dl-sub">Fetching release data from GitHub…</span>
+        <span class="sub" id="dl-sub">Loading release data from GitHub…</span>
       </div>
       <div class="acts">
-        <a class="btn btn-primary btn-sm" id="dl-main" href="https://github.com/TheRealDevCH/Rageforge-Spiegelwuerfel/releases/latest">
+        <a class="btn btn-primary" id="dl-main" href="https://github.com/TheRealDevCH/Rageforge-Spiegelwuerfel/releases/latest">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
           Download
         </a>
-        <a class="btn btn-ghost btn-sm" id="dl-notes" href="https://github.com/TheRealDevCH/Rageforge-Spiegelwuerfel/releases">Release notes</a>
+        <a class="btn btn-ghost" id="dl-notes" href="https://github.com/TheRealDevCH/Rageforge-Spiegelwuerfel/releases">Release notes</a>
       </div>
     </div>
 
     <div class="ver-list" id="ver-list">
-      <div class="ver-empty">Loading version history…</div>
+      <div class="ver-skel"><i></i></div>
+      <div class="ver-skel"><i></i></div>
     </div>
 
     <div class="hub-note reveal">
-      <strong>How new versions work:</strong> every build is published as a GitHub release in the
-      <a href="https://github.com/TheRealDevCH/Rageforge-Spiegelwuerfel" style="color:var(--sky-bright)">Rageforge-Spiegelwuerfel</a>
-      hub. The <span class="inline-code">/releases/latest</span> link always resolves to the newest one, and this page reads the
-      release API at load time — so publishing a release is the only step needed to make it appear here.
+      <strong>Publishing a new version:</strong> commit the jars, add an entry to <code>versions.json</code>,
+      tag the commit and publish the release. The permanent
+      <code>/releases/latest</code> link always resolves to the newest stable build, so shared links never go stale.
     </div>
   </section>
 
+  <div class="free-banner" id="license">
+    <div class="free-inner">
+      <div class="reveal">
+        <div class="kick">License · free forever</div>
+        <h2>This mod is free. It stays free.</h2>
+        <p>
+          The Mirror Cube is a community project. The reflection engine it builds on is
+          <strong>MIT licensed</strong>, and this build follows the same spirit: download it, play with it,
+          put it in your modpack, take it apart and learn from it.
+        </p>
+        <p>
+          <strong>What is not acceptable is selling it.</strong> Not as a paid download, not behind a
+          paywall or "premium" tier, not bundled into a paid modpack, not reuploaded to a site that pays
+          per download or forces ad-gates. If money is being charged for access to this mod, that is not sanctioned.
+        </p>
+        <p>
+          Credit the upstream Mirror project by Isaac Harper when you redistribute, keep the license files
+          intact, and link back to the release hub rather than mirroring the jars behind your own gate.
+        </p>
+      </div>
+      <div class="free-rules reveal">
+        <div class="free-rule ok">
+          <span class="m">+</span>
+          <div>
+            <strong>Free to download and play</strong>
+            <span>For anyone, on any server, for as long as the mod exists.</span>
+          </div>
+        </div>
+        <div class="free-rule ok">
+          <span class="m">+</span>
+          <div>
+            <strong>Free to include in modpacks</strong>
+            <span>As long as the pack itself is free and the license files stay intact.</span>
+          </div>
+        </div>
+        <div class="free-rule ok">
+          <span class="m">+</span>
+          <div>
+            <strong>Free to study and modify</strong>
+            <span>The engine is MIT. Read it, learn from it, build on it.</span>
+          </div>
+        </div>
+        <div class="free-rule ok">
+          <span class="m">+</span>
+          <div>
+            <strong>Free to stream and record</strong>
+            <span>No permission needed, monetised videos included. Crediting is appreciated.</span>
+          </div>
+        </div>
+        <div class="free-rule no">
+          <span class="m">−</span>
+          <div>
+            <strong>Never sold</strong>
+            <span>No paid downloads, no paywalls, no premium versions, no paid early access.</span>
+          </div>
+        </div>
+        <div class="free-rule no">
+          <span class="m">−</span>
+          <div>
+            <strong>No paid modpacks</strong>
+            <span>Do not bundle it into a pack that charges for access.</span>
+          </div>
+        </div>
+        <div class="free-rule no">
+          <span class="m">−</span>
+          <div>
+            <strong>No pay-per-download reuploads</strong>
+            <span>No ad-gates, link shorteners or download-reward sites.</span>
+          </div>
+        </div>
+        <div class="free-rule no">
+          <span class="m">−</span>
+          <div>
+            <strong>No stripped credits</strong>
+            <span>Do not remove the MIT license or claim the engine as your own work.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <section class="block" id="performance">
     <div class="warn reveal">
-      <div class="bang">⚠</div>
+      <div class="bang">!</div>
       <div>
         <h3>Read this first: the mod is performance-heavy.</h3>
         <p>
           Real reflections mean the game re-renders parts of the scene for <em>every mirror face on screen</em>,
-          on top of everything it already draws. Depending on hardware and settings this can noticeably cut your
-          FPS — especially with several cubes visible at once or a high recursion depth.
+          on top of everything it already draws. Depending on hardware and settings this can noticeably cut
+          your framerate — especially with several cubes visible at once or a high recursion depth.
         </p>
         <p>
-          The good news: you are fully in control. Every performance-relevant value lives in
-          <code>config/mirror.json</code>. Turn them down for smooth gameplay on a weaker PC,
-          or push them up if your rig can take deeper, sharper reflections.
+          You are fully in control. Every performance-relevant value lives in <code>config/mirror.json</code>.
+          Turn them down for smooth gameplay on a weaker machine, or push them up if your hardware can take
+          deeper, sharper reflections.
         </p>
       </div>
     </div>
 
-    <div class="section-head reveal" style="margin-top:66px">
+    <div class="section-head reveal" style="margin-top:clamp(48px,5vw,86px)">
       <span class="tag">Configuration</span>
       <h2>Seven dials in <span class="mono-accent">config/mirror.json</span></h2>
-      <p>Lower values mean better performance. Higher values mean richer reflections and more GPU/CPU load.</p>
+      <p>Lower values mean better performance. Higher values mean richer reflections and more GPU and CPU load.</p>
     </div>
 
     <div class="cfg-wrap">
@@ -691,34 +1246,34 @@
 
       <div class="cfg-list">
         <div class="cfg-item reveal">
-          <div class="top"><span class="key">resolutionScale</span><span class="impact high">Biggest FPS win</span></div>
-          <p>Render resolution of the reflection relative to your normal resolution. <span class="inline-code">1.0</span> is full quality.</p>
+          <div class="top"><span class="key">resolutionScale</span><span class="impact high">Biggest win</span></div>
+          <p>Reflection buffer resolution relative to your screen. <span class="inline-code">1.0</span> is full quality. This is the only value that scales quadratically.</p>
           <div class="hint">Drop to 0.6–0.7 first if you need frames back.</div>
         </div>
         <div class="cfg-item reveal">
-          <div class="top"><span class="key">recursionDepth</span><span class="impact high">High impact</span></div>
-          <p>How many times a mirror may reflect into another mirror. Higher gets closer to a true infinite mirror.</p>
-          <div class="hint">Lower it if two facing cubes tank your framerate.</div>
+          <div class="top"><span class="key">nestedPerParent</span><span class="impact high">Exponential</span></div>
+          <p>How many child reflections one reflection may spawn. The branching factor of the reflection tree.</p>
+          <div class="hint">Leave at 2. Raising this is what causes frame spikes.</div>
         </div>
         <div class="cfg-item reveal">
-          <div class="top"><span class="key">maxReflections</span><span class="impact mid">Medium impact</span></div>
-          <p>Maximum number of mirror surfaces rendered at the same time.</p>
+          <div class="top"><span class="key">recursionDepth</span><span class="impact mid">High impact</span></div>
+          <p>How many times a mirror may reflect into another mirror. Higher gets closer to a true infinite mirror.</p>
+          <div class="hint">Push this instead of nestedPerParent for deeper mirrors.</div>
+        </div>
+        <div class="cfg-item reveal">
+          <div class="top"><span class="key">maxReflections</span><span class="impact mid">Linear</span></div>
+          <p>Maximum number of mirror surfaces rendered in one frame.</p>
           <div class="hint">Lower it when many mirrors are visible at once.</div>
         </div>
         <div class="cfg-item reveal">
           <div class="top"><span class="key">maxRenderPasses</span><span class="impact mid">Safety net</span></div>
-          <p>Hard cap on total render passes spent on reflections — your overall performance budget.</p>
-          <div class="hint">Use it as a strict FPS guardrail regardless of other values.</div>
-        </div>
-        <div class="cfg-item reveal">
-          <div class="top"><span class="key">nestedPerParent</span><span class="impact mid">Medium impact</span></div>
-          <p>How many nested reflections are allowed per parent reflection.</p>
-          <div class="hint">Lower it if complex mirror setups feel laggy.</div>
+          <p>Absolute ceiling on reflection passes per frame, regardless of the other values.</p>
+          <div class="hint">Your strict framerate guardrail.</div>
         </div>
         <div class="cfg-item reveal">
           <div class="top"><span class="key">reflectionDistanceChunks</span><span class="impact low">Situational</span></div>
           <p>How far, in chunks, the reflected view reaches into the world.</p>
-          <div class="hint">Lower it if distant terrain in reflections doesn't matter to you.</div>
+          <div class="hint">Keep it at or below your normal render distance.</div>
         </div>
         <div class="cfg-item reveal">
           <div class="top"><span class="key">fogStartBlocks</span><span class="impact low">Situational</span></div>
@@ -729,10 +1284,10 @@
     </div>
 
     <div class="tip reveal">
-      <strong>Quick tuning recipe:</strong> if the mod feels heavy, cut <span class="inline-code">resolutionScale</span> to
-      <span class="inline-code">0.65</span> and <span class="inline-code">recursionDepth</span> to <span class="inline-code">2</span> first.
-      That combination usually recovers the most frames for the smallest visual trade-off.
-      Full reasoning in the <a href="docs.html#performance-model" style="color:var(--sky-bright)">performance model</a>.
+      <strong>Quick tuning recipe:</strong> if the mod feels heavy, cut <span class="inline-code">resolutionScale</span>
+      to <span class="inline-code">0.65</span> and <span class="inline-code">recursionDepth</span> to
+      <span class="inline-code">2</span> first. That combination recovers the most frames for the smallest visual
+      trade-off. Full reasoning in the <a href="docs.html#performance-model">performance model</a>.
     </div>
   </section>
 
@@ -774,11 +1329,17 @@
     <div class="compat">
       <div class="cc yes reveal">
         <div class="hdr"><span class="mark">✓</span> Sodium</div>
-        <p>Supported. During a reflection pass the mod points Sodium's terrain projection at the mirror's oblique projection, so Sodium draws the reflected view instead of the scene behind the mirror — then restores it.</p>
+        <p>
+          Supported. During a reflection pass the mod points Sodium's terrain projection at the mirror's oblique
+          projection, so Sodium draws the reflected view instead of the scene behind the mirror — then restores it.
+        </p>
       </div>
       <div class="cc no reveal">
-        <div class="hdr"><span class="mark">✕</span> Iris / Shaders</div>
-        <p>Declared as <span class="inline-code">breaks</span> in the mod metadata. Iris replaces the render pipeline that the reflection pass re-enters, so mirrors cannot draw their view.</p>
+        <div class="hdr"><span class="mark">✕</span> Iris and shader packs</div>
+        <p>
+          Declared as <span class="inline-code">breaks</span> in the mod metadata. Iris replaces the render
+          pipeline that the reflection pass re-enters, so mirrors have nothing to draw into.
+        </p>
       </div>
     </div>
   </section>
@@ -790,16 +1351,20 @@
     </div>
     <div class="credits">
       <div class="credit reveal">
-        <span class="g">◆</span>
-        <div>Reflection engine based on <a href="https://github.com/Isaac-Harper/mirror" target="_blank" rel="noopener">Mirror</a> by <strong>Isaac Harper</strong> — licensed under MIT.</div>
+        <span class="g">01</span>
+        <div>Reflection engine based on <a href="https://github.com/Isaac-Harper/mirror" target="_blank" rel="noopener">Mirror</a> by <strong>Isaac Harper</strong>, licensed under MIT.</div>
       </div>
       <div class="credit reveal">
-        <span class="g">◆</span>
+        <span class="g">02</span>
         <div>Mirror Cube block, Rageforge creative tab and integration by <strong>Rageforge</strong>.</div>
       </div>
       <div class="credit reveal">
-        <span class="g">◆</span>
-        <div>Free for the community. Built for Minecraft <strong>26.2</strong> on Fabric. Technical breakdown in the <a href="docs.html">documentation</a>.</div>
+        <span class="g">03</span>
+        <div>Built for Minecraft <strong>26.2</strong> on Fabric. Technical breakdown in the <a href="docs.html">documentation</a>.</div>
+      </div>
+      <div class="credit reveal">
+        <span class="g">04</span>
+        <div><strong>Free for the community, permanently.</strong> Not for sale, not behind a paywall, not in a paid pack.</div>
       </div>
     </div>
   </section>
@@ -817,6 +1382,7 @@
           </a>
           <a class="btn btn-ghost" href="docs.html">Read the docs</a>
         </div>
+        <div class="fine">Free forever · <b>never for sale</b> · MIT engine</div>
       </div>
     </div>
   </div>
@@ -831,25 +1397,31 @@
     </div>
     <div class="foot-links">
       <a href="docs.html">Documentation</a><span class="dot">·</span>
+      <a href="#license">License</a><span class="dot">·</span>
       <a href="https://github.com/TheRealDevCH/Rageforge-Spiegelwuerfel">Release hub</a><span class="dot">·</span>
       <a href="https://github.com/TheRealDevCH/Rageforge-Spiegelwuerfel/releases/latest">Latest</a><span class="dot">·</span>
       <a href="https://github.com/Isaac-Harper/mirror" target="_blank" rel="noopener">Upstream Mirror (MIT)</a>
     </div>
   </div>
+  <div class="foot-free">
+    <strong>This mod is free software and must stay free.</strong>
+    Selling it, paywalling it, or bundling it into a paid modpack is not permitted.
+    Redistribute it freely, keep the license files intact, and link back to the release hub.
+  </div>
 </footer>
 
 <div class="lightbox" id="lightbox">
-  <span class="x">✕</span>
+  <span class="x">Close</span>
   <img src="" alt="">
 </div>
 
 <script type="module" src="assets/cube.js"></script>
 <script src="assets/site.js"></script>
 <script>
-  /* ---------- lightbox ---------- */
   const lb = document.getElementById('lightbox');
   const lbImg = lb.querySelector('img');
-  document.querySelectorAll('.shot').forEach(fig => {
+
+  document.querySelectorAll('.shot').forEach((fig) => {
     fig.addEventListener('click', () => {
       lbImg.src = fig.dataset.full;
       lbImg.alt = fig.querySelector('img').alt;
@@ -857,43 +1429,53 @@
       document.body.style.overflow = 'hidden';
     });
   });
-  const closeLb = () => { lb.classList.remove('open'); document.body.style.overflow = ''; };
-  lb.addEventListener('click', closeLb);
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLb(); });
 
-  /* ---------- copy config ---------- */
+  const closeLb = () => {
+    lb.classList.remove('open');
+    document.body.style.overflow = '';
+  };
+
+  lb.addEventListener('click', closeLb);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeLb(); });
+
   const copyBtn = document.getElementById('copyBtn');
   copyBtn.addEventListener('click', async () => {
     try {
       await navigator.clipboard.writeText(document.getElementById('cfgCode').innerText);
       copyBtn.textContent = 'Copied';
       copyBtn.classList.add('done');
-      setTimeout(() => { copyBtn.textContent = 'Copy'; copyBtn.classList.remove('done'); }, 1800);
-    } catch (_) { copyBtn.textContent = 'Ctrl+C'; }
+      setTimeout(() => {
+        copyBtn.textContent = 'Copy';
+        copyBtn.classList.remove('done');
+      }, 1700);
+    } catch (err) {
+      copyBtn.textContent = 'Ctrl+C';
+    }
   });
 
-  /* ---------- feature spotlight ---------- */
-  document.querySelectorAll('.feature').forEach(card => {
-    card.addEventListener('pointermove', e => {
+  document.querySelectorAll('.feature').forEach((card) => {
+    card.addEventListener('pointermove', (e) => {
       const r = card.getBoundingClientRect();
       card.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100) + '%');
       card.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100) + '%');
     });
   });
 
-  /* ---------- live release list ---------- */
   const HUB = 'TheRealDevCH/Rageforge-Spiegelwuerfel';
   const HUB_URL = 'https://github.com/' + HUB;
 
   const fmtDate = (iso) => {
     try {
       return new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-    } catch (_) { return ''; }
+    } catch (err) {
+      return '';
+    }
   };
+
   const fmtSize = (b) => b >= 1048576 ? (b / 1048576).toFixed(1) + ' MB' : Math.round(b / 1024) + ' KB';
 
   function pickAsset(rel) {
-    const a = (rel.assets || []).find(x => /\.(zip|jar)$/i.test(x.name));
+    const a = (rel.assets || []).find((x) => /\.(zip|jar)$/i.test(x.name));
     return a ? a.browser_download_url : rel.zipball_url || (HUB_URL + '/releases/tag/' + rel.tag_name);
   }
 
@@ -904,28 +1486,31 @@
         headers: { 'Accept': 'application/vnd.github+json' }
       });
       if (!res.ok) throw new Error('HTTP ' + res.status);
-      const rels = (await res.json()).filter(r => !r.draft);
+
+      const rels = (await res.json()).filter((r) => !r.draft);
       if (!rels.length) throw new Error('no releases');
 
-      const latest = rels.find(r => !r.prerelease) || rels[0];
+      const latest = rels.find((r) => !r.prerelease) || rels[0];
 
       document.getElementById('dl-ver').textContent = latest.tag_name;
       document.getElementById('spec-latest').textContent = latest.tag_name;
+
       const pill = document.getElementById('dl-pill');
       pill.textContent = latest.prerelease ? 'Pre-release' : 'Latest';
       pill.className = 'pill ' + (latest.prerelease ? 'pre' : 'latest');
 
-      const assetCount = (latest.assets || []).length;
+      const assets = (latest.assets || []).length;
       document.getElementById('dl-sub').textContent =
         'Published ' + fmtDate(latest.published_at) + ' · Minecraft 26.2 · Fabric' +
-        (assetCount ? ' · ' + assetCount + ' file' + (assetCount === 1 ? '' : 's') : ' · source archive');
+        (assets ? ' · ' + assets + ' file' + (assets === 1 ? '' : 's') : ' · source archive');
+
       document.getElementById('dl-main').href = pickAsset(latest);
       document.getElementById('dl-notes').href = latest.html_url;
 
-      verList.innerHTML = rels.map(r => {
+      verList.innerHTML = rels.map((r) => {
         const isLatest = r.tag_name === latest.tag_name;
         const size = (r.assets || []).reduce((s, a) => s + (a.size || 0), 0);
-        return '<div class="ver-row reveal in">' +
+        return '<div class="ver-row">' +
           '<div class="l">' +
             '<span class="tag-v">' + r.tag_name + '</span>' +
             (isLatest ? '<span class="pill latest">Latest</span>' : '') +
@@ -939,7 +1524,6 @@
         '</div>';
       }).join('');
     } catch (err) {
-      /* fall back to the static index committed in the hub repo */
       try {
         const vres = await fetch('https://raw.githubusercontent.com/' + HUB + '/main/versions.json');
         const data = await vres.json();
@@ -947,23 +1531,24 @@
         document.getElementById('dl-ver').textContent = data.latest || (v[0] && v[0].version) || 'v0.1.0';
         document.getElementById('spec-latest').textContent = data.latest || 'v0.1.0';
         document.getElementById('dl-sub').textContent = 'Minecraft 26.2 · Fabric · from versions.json';
-        verList.innerHTML = v.map(x =>
-          '<div class="ver-row reveal in"><div class="l">' +
+        verList.innerHTML = v.map((x) =>
+          '<div class="ver-row"><div class="l">' +
             '<span class="tag-v">' + x.version + '</span>' +
             '<span class="date">' + (x.released || '') + ' · MC ' + (x.minecraft || '') + '</span>' +
           '</div><div class="r">' +
             '<a class="btn btn-ghost btn-sm" href="' + HUB_URL + '/releases/tag/' + x.version + '">Download</a>' +
           '</div></div>'
         ).join('');
-      } catch (_) {
+      } catch (err2) {
         document.getElementById('dl-ver').textContent = 'v0.1.0';
         document.getElementById('spec-latest').textContent = 'v0.1.0';
         document.getElementById('dl-sub').textContent = 'Open the release hub on GitHub for all versions.';
         verList.innerHTML = '<div class="ver-empty">Could not reach GitHub. ' +
-          '<a href="' + HUB_URL + '/releases" style="color:var(--sky-bright)">Browse all releases →</a></div>';
+          '<a href="' + HUB_URL + '/releases" style="color:var(--sky-bright)">Open the release hub</a>.</div>';
       }
     }
   }
+
   loadReleases();
 </script>
 

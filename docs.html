@@ -16,20 +16,18 @@
 <style>
   body { background: var(--ink-950); }
 
-  /* ============ docs shell ============ */
   .docs-shell {
-    max-width: 1320px;
+    max-width: var(--maxw);
     margin: 0 auto;
-    padding: calc(var(--nav-h) + 34px) 24px 40px;
+    padding: calc(var(--nav-h) + 34px) var(--gutter) 40px;
     display: grid;
-    grid-template-columns: 268px minmax(0, 1fr) 214px;
-    gap: 40px;
+    grid-template-columns: clamp(230px, 17vw, 300px) minmax(0, 1fr) clamp(180px, 13vw, 240px);
+    gap: clamp(26px, 3vw, 60px);
     align-items: start;
   }
-  @media (max-width: 1180px) { .docs-shell { grid-template-columns: 250px minmax(0,1fr); } .toc-right { display: none; } }
+  @media (max-width: 1180px) { .docs-shell { grid-template-columns: clamp(220px,22vw,270px) minmax(0,1fr); } .toc-right { display: none; } }
   @media (max-width: 900px)  { .docs-shell { grid-template-columns: 1fr; gap: 24px; } }
 
-  /* ============ tree sidebar ============ */
   .tree-wrap {
     position: sticky;
     top: calc(var(--nav-h) + 22px);
@@ -38,7 +36,7 @@
     padding-right: 8px;
   }
   @media (max-width: 900px) {
-    .tree-wrap { position: static; max-height: none; border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; background: var(--panel); }
+    .tree-wrap { position: static; max-height: none; border: var(--hair) solid var(--line); border-radius: 0; padding: 16px; background: var(--panel); }
   }
   .tree-title {
     font-size: 0.68rem; font-weight: 750; letter-spacing: 0.15em; text-transform: uppercase;
@@ -50,7 +48,7 @@
 
   .tree .node {
     display: flex; align-items: center; gap: 7px;
-    padding: 6px 9px; border-radius: 8px;
+    padding: 6px 9px; border-radius: 0;
     color: var(--muted); cursor: pointer;
     transition: color 0.2s, background 0.2s;
     user-select: none;
@@ -67,13 +65,12 @@
   .tree .node .glyph { flex-shrink: 0; opacity: 0.8; font-size: 0.85em; width: 13px; text-align: center; }
   .tree .node .txt { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-  /* nested list: animated collapse */
   .tree .kids {
     display: grid;
     grid-template-rows: 0fr;
     transition: grid-template-rows 0.32s var(--ease);
     margin-left: 12px;
-    border-left: 1px solid var(--line);
+    border-left: var(--hair) solid var(--line);
     padding-left: 6px;
   }
   .tree .kids > div { overflow: hidden; }
@@ -82,11 +79,10 @@
   .tree .kids .node:hover { color: var(--text); }
   .tree .kids .node.active { color: var(--sky-bright); }
 
-  /* ============ content ============ */
   .docs-main { min-width: 0; }
   .docs-hero {
-    border: 1px solid var(--line);
-    border-radius: var(--radius-lg);
+    border: var(--hair) solid var(--line);
+    border-radius: 0;
     background: linear-gradient(155deg, rgba(148,183,245,0.09), rgba(255,255,255,0.012) 60%, transparent);
     padding: 34px 34px 30px;
     margin-bottom: 44px;
@@ -105,7 +101,7 @@
   }
   .docs-hero .facts span {
     font-size: 0.76rem; color: var(--muted);
-    padding: 5px 12px; border: 1px solid var(--line); border-radius: 999px;
+    padding: 5px 12px; border: var(--hair) solid var(--line); border-radius: 0;
     background: rgba(255,255,255,0.03);
   }
 
@@ -118,7 +114,7 @@
     font-weight: 750; letter-spacing: -0.026em; line-height: 1.16;
     margin-bottom: 8px;
     padding-bottom: 12px;
-    border-bottom: 1px solid var(--line);
+    border-bottom: var(--hair) solid var(--line);
     display: flex; align-items: baseline; gap: 12px;
   }
   article h2 .num {
@@ -144,7 +140,7 @@
   article code {
     font-family: var(--mono); font-size: 0.855em;
     background: rgba(255,255,255,0.07); color: var(--sky-bright);
-    padding: 2px 6px; border-radius: 5px;
+    padding: 2px 6px; border-radius: 0;
   }
   article .lead {
     font-size: 1.06rem; color: var(--silver);
@@ -152,20 +148,19 @@
     margin: 18px 0 22px;
   }
 
-  /* code blocks */
   .cb {
-    border: 1px solid var(--line); border-radius: var(--radius);
+    border: var(--hair) solid var(--line); border-radius: 0;
     background: rgba(2,4,7,0.75); overflow: hidden; margin: 18px 0 22px;
   }
   .cb-head {
     display: flex; align-items: center; justify-content: space-between; gap: 12px;
-    padding: 10px 15px; border-bottom: 1px solid var(--line);
+    padding: 10px 15px; border-bottom: var(--hair) solid var(--line);
     background: rgba(255,255,255,0.026);
     font-family: var(--mono); font-size: 0.76rem; color: var(--muted);
   }
   .cb-head .dotf { display: flex; align-items: center; gap: 8px; }
   .cb-head .dotf::before {
-    content: ''; width: 7px; height: 7px; border-radius: 50%;
+    content: ''; width: 7px; height: 7px; border-radius: 0;
     background: var(--sky); box-shadow: 0 0 7px var(--sky);
   }
   .cb pre {
@@ -182,11 +177,10 @@
   .cb pre .k  { color: var(--sky-bright); }
   .cb pre .p  { color: var(--muted-dim); }
 
-  /* callouts */
   .callout {
     display: flex; gap: 15px; align-items: flex-start;
-    padding: 19px 22px; border-radius: var(--radius);
-    border: 1px solid var(--line); background: var(--panel);
+    padding: 19px 22px; border-radius: 0;
+    border: var(--hair) solid var(--line); background: var(--panel);
     margin: 20px 0 24px;
   }
   .callout .ci { flex-shrink: 0; font-size: 1.15rem; line-height: 1.4; }
@@ -201,15 +195,14 @@
   .callout.bad  p { color: #eec3b6; }
   .callout .ct { display: block; font-weight: 700; color: var(--text); margin-bottom: 5px; font-size: 0.95rem; }
 
-  /* tables */
-  .tw { overflow-x: auto; margin: 18px 0 24px; border: 1px solid var(--line); border-radius: var(--radius); }
-  table { width: 100%; border-collapse: collapse; font-size: 0.9rem; min-width: 480px; }
+  .tw { overflow-x: auto; margin: 18px 0 24px; border: var(--hair) solid var(--line); border-radius: 0; }
+  table { width: 100%; border-collapse: collapse; font-size: clamp(0.82rem, 0.7vw, 0.92rem); min-width: min(480px, 100%); }
   thead th {
     text-align: left; padding: 12px 16px;
     background: rgba(255,255,255,0.035);
     color: var(--muted-dim);
     font-size: 0.71rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
-    border-bottom: 1px solid var(--line);
+    border-bottom: var(--hair) solid var(--line);
     white-space: nowrap;
   }
   tbody td { padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.055); color: var(--muted); vertical-align: top; }
@@ -218,18 +211,17 @@
   tbody td:first-child { color: var(--text); }
   tbody td code { white-space: nowrap; }
 
-  /* pipeline diagram */
   .pipe { display: grid; gap: 9px; margin: 22px 0 26px; counter-reset: pp; }
   .pipe-step {
     display: flex; gap: 15px; align-items: flex-start;
-    padding: 16px 19px; border: 1px solid var(--line); border-radius: 13px;
+    padding: 16px 19px; border: var(--hair) solid var(--line); border-radius: 0;
     background: var(--panel);
     transition: border-color 0.3s, background 0.3s, transform 0.3s var(--ease);
   }
   .pipe-step:hover { border-color: rgba(148,183,245,0.4); background: var(--panel-strong); transform: translateX(4px); }
   .pipe-step .pn {
     counter-increment: pp; flex-shrink: 0;
-    width: 27px; height: 27px; display: grid; place-items: center; border-radius: 8px;
+    width: 27px; height: 27px; display: grid; place-items: center; border-radius: 0;
     background: rgba(148,183,245,0.14); border: 1px solid rgba(148,183,245,0.28);
     color: var(--sky-bright); font-family: var(--mono); font-weight: 700; font-size: 0.78rem;
   }
@@ -241,13 +233,12 @@
     display: inline-block; margin-top: 7px;
     font-family: var(--mono); font-size: 0.73rem;
     color: var(--muted-dim); padding: 2px 8px;
-    border: 1px solid var(--line); border-radius: 6px;
+    border: var(--hair) solid var(--line); border-radius: 0;
   }
 
-  /* file tree render */
   .ftree {
     font-family: var(--mono); font-size: 0.8rem; line-height: 2;
-    border: 1px solid var(--line); border-radius: var(--radius);
+    border: var(--hair) solid var(--line); border-radius: 0;
     background: rgba(2,4,7,0.72); padding: 18px 20px;
     overflow-x: auto; margin: 18px 0 24px;
     color: var(--muted);
@@ -257,7 +248,6 @@
   .ftree .cm { color: var(--muted-dim); }
   .ftree .br { color: rgba(255,255,255,0.2); }
 
-  /* right-hand TOC */
   .toc-right {
     position: sticky;
     top: calc(var(--nav-h) + 22px);
@@ -280,7 +270,7 @@
 
   .docs-foot-nav {
     display: flex; justify-content: space-between; gap: 14px; flex-wrap: wrap;
-    margin-top: 20px; padding-top: 26px; border-top: 1px solid var(--line);
+    margin-top: 20px; padding-top: 26px; border-top: var(--hair) solid var(--line);
   }
 </style>
 </head>
@@ -299,6 +289,7 @@
       <a href="index.html">Home</a>
       <a href="index.html#downloads">Versions</a>
       <a href="index.html#performance">Performance</a>
+      <a href="index.html#license">License</a>
       <a class="nav-cta" href="https://github.com/TheRealDevCH/Rageforge-Spiegelwuerfel/releases/latest">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
         Latest
@@ -309,7 +300,6 @@
 
 <div class="docs-shell">
 
-  <!-- ================= TREE SIDEBAR ================= -->
   <aside class="tree-wrap">
     <div class="tree-title">Documentation</div>
     <nav class="tree" id="tree">
@@ -373,6 +363,7 @@
             <li><div class="node" data-target="ids"><span class="glyph">·</span><span class="txt">IDs &amp; assets</span></div></li>
             <li><div class="node" data-target="troubleshooting"><span class="glyph">·</span><span class="txt">Troubleshooting</span></div></li>
             <li><div class="node" data-target="releasing"><span class="glyph">·</span><span class="txt">Publishing versions</span></div></li>
+            <li><div class="node" data-target="free-forever"><span class="glyph">·</span><span class="txt">Free forever</span></div></li>
             <li><div class="node" data-target="license"><span class="glyph">·</span><span class="txt">License &amp; credits</span></div></li>
           </ul></div></div>
         </li>
@@ -380,7 +371,6 @@
     </nav>
   </aside>
 
-  <!-- ================= CONTENT ================= -->
   <main class="docs-main">
     <div class="docs-hero reveal">
       <div class="kicker">Technical documentation</div>
@@ -402,7 +392,6 @@
 
     <article>
 
-      <!-- ============ OVERVIEW ============ -->
       <section id="overview">
         <h2><span class="num">01</span> Overview</h2>
         <p class="lead">
@@ -431,7 +420,6 @@
         </div>
       </section>
 
-      <!-- ============ CONCEPT ============ -->
       <section id="what-is-a-mirror">
         <h2><span class="num">02</span> What a mirror really is</h2>
         <p>
@@ -539,7 +527,6 @@
         </p>
       </section>
 
-      <!-- ============ PIPELINE ============ -->
       <section id="pipeline">
         <h2><span class="num">05</span> A frame, step by step</h2>
         <p>
@@ -807,7 +794,6 @@
         </div>
       </section>
 
-      <!-- ============ CODE ============ -->
       <section id="jar-layout">
         <h2><span class="num">10</span> Jar layout</h2>
         <p>Both jars, exactly as shipped:</p>
@@ -988,7 +974,6 @@
         </div>
       </section>
 
-      <!-- ============ PERFORMANCE ============ -->
       <section id="performance-model">
         <h2><span class="num">15</span> The cost model</h2>
         <p class="lead">
@@ -1154,7 +1139,6 @@ passCost   ∝  resolutionScale²                <span class="c">// pixels — q
         </div>
       </section>
 
-      <!-- ============ COMPAT ============ -->
       <section id="sodium">
         <h2><span class="num">18</span> Why Sodium works</h2>
         <p>
@@ -1225,7 +1209,6 @@ passCost   ∝  resolutionScale²                <span class="c">// pixels — q
         </div>
       </section>
 
-      <!-- ============ REFERENCE ============ -->
       <section id="ids">
         <h2><span class="num">21</span> IDs and assets</h2>
         <div class="tw">
@@ -1337,8 +1320,52 @@ passCost   ∝  resolutionScale²                <span class="c">// pixels — q
         </div>
       </section>
 
+      <section id="free-forever">
+        <h2><span class="num">24</span> Free forever</h2>
+        <p class="lead">
+          This mod is free software and it must stay that way. It was built for the community, on top of an
+          MIT-licensed engine, and there is no version of it that costs money.
+        </p>
+        <p>
+          The reflection engine is MIT licensed, which permits commercial use in the legal sense. That is not
+          the point. The intent of this project is explicit: <strong>the Mirror Cube is not to be sold.</strong>
+          If you find it behind a payment, a paywall, a premium tier or a paid modpack, that distribution is
+          not sanctioned by the project.
+        </p>
+
+        <h3>Encouraged</h3>
+        <ul>
+          <li><strong>Download and play it</strong> — for anyone, on any server, indefinitely.</li>
+          <li><strong>Put it in a modpack</strong> — as long as the pack itself is free to obtain.</li>
+          <li><strong>Read and modify the code</strong> — the engine is MIT; learning from it is the point.</li>
+          <li><strong>Stream and record it</strong> — monetised videos included, no permission needed.</li>
+          <li><strong>Redistribute it</strong> — with license files intact and credit to the upstream project.</li>
+        </ul>
+
+        <h3>Not permitted</h3>
+        <ul>
+          <li><strong>Selling the mod</strong> — no paid downloads, no premium builds, no paid early access.</li>
+          <li><strong>Paywalling access</strong> — no subscription, Patreon or donation gate required to obtain it.</li>
+          <li><strong>Paid modpacks</strong> — do not bundle it into a pack that charges for access.</li>
+          <li><strong>Pay-per-download reuploads</strong> — no ad-gates, link shorteners or reward-per-download sites.</li>
+          <li><strong>Stripping credits</strong> — do not remove the MIT license or present the engine as your own work.</li>
+        </ul>
+
+        <div class="callout bad">
+          <span class="ci">✕</span>
+          <div>
+            <span class="ct">In one sentence</span>
+            <p>
+              Charging anyone money for access to this mod — directly or indirectly — goes against the intent
+              of the project. Share it freely, credit the people who wrote it, and link to the release hub
+              instead of mirroring the jars behind your own gate.
+            </p>
+          </div>
+        </div>
+      </section>
+
       <section id="license">
-        <h2><span class="num">24</span> License and credits</h2>
+        <h2><span class="num">25</span> License and credits</h2>
         <ul>
           <li>
             <strong>Reflection engine</strong> — <a class="link" href="https://github.com/Isaac-Harper/mirror" target="_blank" rel="noopener">Mirror</a>
@@ -1365,7 +1392,6 @@ passCost   ∝  resolutionScale²                <span class="c">// pixels — q
     </article>
   </main>
 
-  <!-- ================= RIGHT TOC ================= -->
   <aside class="toc-right" id="toc"></aside>
 
 </div>
@@ -1377,19 +1403,24 @@ passCost   ∝  resolutionScale²                <span class="c">// pixels — q
       <span>Rageforge Mirror Cube · Documentation</span>
     </div>
     <div class="foot-links">
+      <a href="index.html#license">License</a><span class="dot">·</span>
       <a href="index.html">Home</a><span class="dot">·</span>
       <a href="https://github.com/TheRealDevCH/Rageforge-Spiegelwuerfel">Release hub</a><span class="dot">·</span>
       <a href="https://github.com/Isaac-Harper/mirror" target="_blank" rel="noopener">Upstream Mirror (MIT)</a>
     </div>
   </div>
+  <div class="foot-free">
+    <strong>This mod is free software and must stay free.</strong>
+    Selling it, paywalling it, or bundling it into a paid modpack is not permitted.
+    Redistribute it freely, keep the license files intact, and link back to the release hub.
+  </div>
 </footer>
 
 <script src="assets/site.js"></script>
 <script>
-  /* ---------------- tree behaviour ---------------- */
+  
   const tree = document.getElementById('tree');
 
-  /* expand / collapse groups */
   tree.querySelectorAll('.node.has-kids').forEach((node) => {
     node.addEventListener('click', () => {
       const kids = document.getElementById(node.dataset.group);
@@ -1398,7 +1429,6 @@ passCost   ∝  resolutionScale²                <span class="c">// pixels — q
     });
   });
 
-  /* jump to section */
   const leafNodes = Array.from(tree.querySelectorAll('.node[data-target]'));
   leafNodes.forEach((node) => {
     node.addEventListener('click', () => {
@@ -1407,7 +1437,6 @@ passCost   ∝  resolutionScale²                <span class="c">// pixels — q
     });
   });
 
-  /* ---------------- right-hand TOC ---------------- */
   const sections = Array.from(document.querySelectorAll('article section'));
   const toc = document.getElementById('toc');
   toc.innerHTML = '<div class="tt">On this page</div>' + sections.map((s) => {
@@ -1417,7 +1446,6 @@ passCost   ∝  resolutionScale²                <span class="c">// pixels — q
     return '<a href="#' + s.id + '" data-id="' + s.id + '">' + label + '</a>';
   }).join('');
 
-  /* ---------------- active section sync ---------------- */
   const tocLinks = Array.from(toc.querySelectorAll('a'));
 
   function setActive(id) {
@@ -1425,7 +1453,7 @@ passCost   ∝  resolutionScale²                <span class="c">// pixels — q
     leafNodes.forEach((n) => {
       const on = n.dataset.target === id;
       n.classList.toggle('active', on);
-      /* auto-open the group that contains the active section */
+      
       if (on) {
         const kids = n.closest('.kids');
         if (kids && !kids.classList.contains('open')) {
@@ -1439,7 +1467,7 @@ passCost   ∝  resolutionScale²                <span class="c">// pixels — q
 
   if ('IntersectionObserver' in window) {
     const spy = new IntersectionObserver((entries) => {
-      /* pick the entry closest to the top of the viewport */
+      
       const visible = entries.filter((e) => e.isIntersecting);
       if (!visible.length) return;
       visible.sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
@@ -1448,7 +1476,6 @@ passCost   ∝  resolutionScale²                <span class="c">// pixels — q
     sections.forEach((s) => spy.observe(s));
   }
 
-  /* deep link on load */
   if (location.hash) {
     const id = location.hash.slice(1);
     setActive(id);
