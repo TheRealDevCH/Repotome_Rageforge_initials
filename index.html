@@ -3,367 +3,1202 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Rageforge Mirror Cube — Minecraft Mod</title>
-<meta name="description" content="Rageforge Mirror Cube — a full 6-sided mirror block for Minecraft 26.2 (Fabric). Reflects everything except you.">
+<title>Rageforge Mirror Cube — A Real Mirror for Minecraft</title>
+<meta name="description" content="Rageforge Mirror Cube — a fully reflective six-sided mirror block for Minecraft 26.2 (Fabric). Reflects the whole world, except you.">
+<meta property="og:title" content="Rageforge Mirror Cube — A Real Mirror for Minecraft">
+<meta property="og:description" content="A fully reflective six-sided mirror block for Minecraft 26.2 (Fabric). Reflects everything, except you.">
+<meta property="og:image" content="assets/screenshot-1.jpg">
+<meta property="og:type" content="website">
 <link rel="icon" type="image/png" href="assets/mirror-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0d1117;
-    --bg-alt: #11151c;
-    --card: #161b22;
-    --border: #2a3140;
-    --text: #e6edf3;
-    --muted: #9aa7b6;
-    --accent: #6ee7ff;
-    --accent-2: #7c8cff;
-    --warn-bg: #2b1f0f;
-    --warn-border: #8a5a00;
-    --warn-text: #ffcf7a;
+    --ink-900: #070a0f;
+    --ink-800: #0b1017;
+    --ink-700: #10161f;
+    --panel: rgba(255,255,255,0.045);
+    --panel-strong: rgba(255,255,255,0.07);
+    --line: rgba(255,255,255,0.10);
+    --line-strong: rgba(255,255,255,0.18);
+    --text: #eef2f8;
+    --muted: #9dabbd;
+    --muted-dim: #74839a;
+    --sky: #94b7f5;
+    --sky-bright: #b9d2ff;
+    --silver: #d8dee9;
+    --sand: #c0bcae;
+    --amber: #f0b64a;
+    --amber-soft: #ffd894;
+    --radius: 16px;
+    --radius-sm: 10px;
+    --shadow: 0 20px 60px -20px rgba(0,0,0,0.8);
+    --maxw: 1080px;
   }
-  * { box-sizing: border-box; }
-  html, body {
-    margin: 0;
-    padding: 0;
-    background: var(--bg);
-    color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    line-height: 1.6;
-  }
-  a { color: var(--accent); text-decoration: none; }
-  a:hover { text-decoration: underline; }
 
-  header.hero {
-    background: radial-gradient(1200px 500px at 50% -10%, rgba(124,140,255,0.18), transparent 60%), var(--bg-alt);
-    border-bottom: 1px solid var(--border);
-    padding: 64px 20px 48px;
-    text-align: center;
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; scroll-padding-top: 90px; }
+
+  body {
+    background: var(--ink-900);
+    color: var(--text);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 16.5px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
   }
-  .hero-icon {
-    width: 72px;
-    height: 72px;
+
+  a { color: inherit; text-decoration: none; }
+  img { display: block; max-width: 100%; }
+
+  ::selection { background: rgba(148,183,245,0.3); }
+
+  /* ============ ambient background ============ */
+  .ambient {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(900px 600px at 15% -5%, rgba(148,183,245,0.14), transparent 65%),
+      radial-gradient(800px 500px at 88% 8%, rgba(192,188,174,0.09), transparent 62%),
+      radial-gradient(700px 700px at 50% 100%, rgba(148,183,245,0.06), transparent 65%);
+  }
+  .ambient::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0.22;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.045) 1px, transparent 1px);
+    background-size: 64px 64px;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 30%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 30%, transparent 75%);
+  }
+
+  /* ============ nav ============ */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    backdrop-filter: blur(18px) saturate(140%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    background: rgba(7,10,15,0.55);
+    border-bottom: 1px solid transparent;
+    transition: border-color .3s, background .3s, padding .3s;
+  }
+  nav.scrolled {
+    border-bottom-color: var(--line);
+    background: rgba(7,10,15,0.85);
+    padding: 10px 24px;
+  }
+  .nav-inner {
+    width: 100%;
+    max-width: var(--maxw);
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    font-size: 0.98rem;
+    white-space: nowrap;
+  }
+  .brand img {
+    width: 28px; height: 28px;
     image-rendering: pixelated;
-    margin-bottom: 16px;
+    border-radius: 6px;
+    box-shadow: 0 0 0 1px var(--line), 0 4px 14px -4px rgba(148,183,245,0.5);
+  }
+  .nav-links {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+  }
+  .nav-links a {
+    color: var(--muted);
+    font-size: 0.9rem;
+    font-weight: 500;
+    padding: 7px 13px;
+    border-radius: 8px;
+    transition: color .2s, background .2s;
+  }
+  .nav-links a:hover { color: var(--text); background: var(--panel); }
+  .nav-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 16px !important;
+    background: var(--text) !important;
+    color: var(--ink-900) !important;
+    font-weight: 600 !important;
+    border-radius: 9px;
+    transition: transform .2s, box-shadow .2s !important;
+  }
+  .nav-cta:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 22px -8px rgba(238,242,248,0.6);
+  }
+  @media (max-width: 780px) {
+    .nav-links a:not(.nav-cta) { display: none; }
+  }
+
+  /* ============ hero ============ */
+  header.hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 130px 24px 70px;
+    overflow: hidden;
+  }
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background: url('assets/screenshot-1.jpg') center 35% / cover no-repeat;
+    opacity: 0.30;
+    transform: scale(1.08);
+    filter: saturate(1.15);
+  }
+  .hero-bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(to bottom, rgba(7,10,15,0.55) 0%, rgba(7,10,15,0.75) 45%, var(--ink-900) 100%),
+      radial-gradient(ellipse 65% 55% at 50% 45%, transparent 20%, rgba(7,10,15,0.7) 100%);
+  }
+  .hero-content {
+    position: relative;
+    z-index: 1;
+    max-width: 780px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 6px 15px 6px 9px;
+    border: 1px solid var(--line-strong);
+    background: var(--panel);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--sky-bright);
+    margin-bottom: 30px;
+  }
+  .eyebrow .dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--sky);
+    box-shadow: 0 0 0 4px rgba(148,183,245,0.22);
+    animation: pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%,100% { box-shadow: 0 0 0 3px rgba(148,183,245,0.28); }
+    50%     { box-shadow: 0 0 0 7px rgba(148,183,245,0.05); }
   }
   .hero h1 {
-    font-size: 2.4rem;
-    margin: 0 0 8px;
-    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    font-size: clamp(2.6rem, 7.5vw, 5rem);
+    line-height: 1.02;
+    font-weight: 800;
+    letter-spacing: -0.035em;
+    margin-bottom: 22px;
+  }
+  .hero h1 .shine {
+    background: linear-gradient(100deg, var(--silver) 0%, #ffffff 20%, var(--sky) 48%, #ffffff 72%, var(--silver) 100%);
+    background-size: 220% auto;
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
+    animation: shine 7s linear infinite;
   }
-  .hero p.tagline {
+  @keyframes shine {
+    to { background-position: 220% center; }
+  }
+  .hero .lede {
+    font-size: clamp(1.05rem, 2.4vw, 1.3rem);
     color: var(--muted);
-    font-size: 1.15rem;
-    max-width: 640px;
-    margin: 0 auto;
+    max-width: 620px;
+    margin-bottom: 38px;
   }
-  .badges {
-    margin-top: 20px;
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-    flex-wrap: wrap;
-  }
-  .badge {
-    font-size: 0.8rem;
-    padding: 4px 10px;
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    color: var(--muted);
-    background: var(--card);
-  }
+  .hero .lede strong { color: var(--silver); font-weight: 600; }
 
   .cta-row {
-    margin-top: 28px;
     display: flex;
-    gap: 12px;
-    justify-content: center;
+    gap: 13px;
     flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 44px;
   }
   .btn {
-    display: inline-block;
-    padding: 10px 20px;
-    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 14px 27px;
+    border-radius: 12px;
     font-weight: 600;
-    text-decoration: none;
+    font-size: 0.98rem;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: transform .22s cubic-bezier(.2,.8,.2,1), box-shadow .22s, background .22s, border-color .22s;
   }
+  .btn svg { width: 17px; height: 17px; }
   .btn-primary {
-    background: linear-gradient(90deg, var(--accent), var(--accent-2));
-    color: #0d1117;
+    background: linear-gradient(135deg, #ffffff, var(--sky-bright));
+    color: var(--ink-900);
+    box-shadow: 0 10px 34px -12px rgba(185,210,255,0.75);
   }
-  .btn-primary:hover { text-decoration: none; filter: brightness(1.08); }
-  .btn-secondary {
-    background: transparent;
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 18px 44px -12px rgba(185,210,255,0.9);
+  }
+  .btn-ghost {
+    background: var(--panel);
+    border-color: var(--line-strong);
     color: var(--text);
-    border: 1px solid var(--border);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
   }
-  .btn-secondary:hover { text-decoration: none; border-color: var(--accent); }
+  .btn-ghost:hover {
+    transform: translateY(-2px);
+    background: var(--panel-strong);
+    border-color: rgba(148,183,245,0.5);
+  }
 
-  main {
-    max-width: 900px;
+  .spec-strip {
+    display: flex;
+    gap: 0;
+    flex-wrap: wrap;
+    justify-content: center;
+    border: 1px solid var(--line);
+    background: rgba(7,10,15,0.5);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .spec-strip div {
+    padding: 13px 22px;
+    font-size: 0.83rem;
+    color: var(--muted);
+    border-right: 1px solid var(--line);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 118px;
+  }
+  .spec-strip div:last-child { border-right: 0; }
+  .spec-strip .k {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: var(--muted-dim);
+  }
+  .spec-strip .v { color: var(--text); font-weight: 600; font-size: 0.92rem; }
+
+  .scroll-hint {
+    position: absolute;
+    bottom: 26px; left: 50%;
+    transform: translateX(-50%);
+    z-index: 1;
+    color: var(--muted-dim);
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    animation: bob 2.6s ease-in-out infinite;
+  }
+  .scroll-hint span.line {
+    width: 1px; height: 26px;
+    background: linear-gradient(to bottom, var(--muted-dim), transparent);
+  }
+  @keyframes bob {
+    0%,100% { transform: translate(-50%, 0); opacity: .75; }
+    50%     { transform: translate(-50%, 7px); opacity: 1; }
+  }
+
+  /* ============ layout ============ */
+  main { position: relative; z-index: 1; }
+  section {
+    max-width: var(--maxw);
     margin: 0 auto;
-    padding: 48px 20px 80px;
+    padding: 96px 24px;
   }
-
-  section { margin-bottom: 56px; }
-  h2 {
-    font-size: 1.5rem;
-    border-left: 4px solid var(--accent-2);
-    padding-left: 12px;
-    margin-bottom: 20px;
+  .section-head { margin-bottom: 44px; max-width: 640px; }
+  .section-head .tag {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--sky);
+    margin-bottom: 13px;
+    display: block;
   }
+  .section-head h2 {
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    font-weight: 750;
+    letter-spacing: -0.028em;
+    line-height: 1.14;
+    margin-bottom: 14px;
+  }
+  .section-head p { color: var(--muted); font-size: 1.04rem; }
 
+  /* ============ features ============ */
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(258px, 1fr));
+    gap: 16px;
+  }
+  .feature {
+    position: relative;
+    padding: 27px 25px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: linear-gradient(160deg, var(--panel), rgba(255,255,255,0.012));
+    overflow: hidden;
+    transition: transform .3s cubic-bezier(.2,.8,.2,1), border-color .3s, background .3s;
+  }
+  .feature::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(360px circle at var(--mx, 50%) var(--my, 0%), rgba(148,183,245,0.13), transparent 70%);
+    opacity: 0;
+    transition: opacity .35s;
+    pointer-events: none;
+  }
+  .feature:hover {
+    transform: translateY(-4px);
+    border-color: var(--line-strong);
+  }
+  .feature:hover::before { opacity: 1; }
+  .feature .ico {
+    width: 42px; height: 42px;
+    display: grid; place-items: center;
+    border-radius: 11px;
+    background: rgba(148,183,245,0.13);
+    border: 1px solid rgba(148,183,245,0.24);
+    font-size: 1.25rem;
+    margin-bottom: 17px;
+  }
+  .feature h3 {
+    font-size: 1.06rem;
+    font-weight: 650;
+    letter-spacing: -0.012em;
+    margin-bottom: 8px;
+  }
+  .feature p { color: var(--muted); font-size: 0.93rem; line-height: 1.6; }
+
+  /* ============ gallery ============ */
   .gallery {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    margin: 24px 0;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 18px;
   }
-  .gallery img {
+  .shot {
+    position: relative;
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid var(--line);
+    background: var(--ink-800);
+    cursor: zoom-in;
+    box-shadow: var(--shadow);
+    transition: transform .35s cubic-bezier(.2,.8,.2,1), border-color .35s;
+  }
+  .shot img {
     width: 100%;
-    border-radius: 10px;
-    border: 1px solid var(--border);
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+    transition: transform .55s cubic-bezier(.2,.8,.2,1), filter .35s;
   }
-  @media (max-width: 640px) {
-    .gallery { grid-template-columns: 1fr; }
+  .shot:hover { transform: translateY(-4px); border-color: rgba(148,183,245,0.45); }
+  .shot:hover img { transform: scale(1.045); }
+  .shot figcaption {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    padding: 34px 18px 15px;
+    font-size: 0.87rem;
+    color: var(--silver);
+    background: linear-gradient(to top, rgba(7,10,15,0.92), transparent);
+  }
+  .shot .zoom-badge {
+    position: absolute;
+    top: 12px; right: 12px;
+    width: 30px; height: 30px;
+    display: grid; place-items: center;
+    border-radius: 8px;
+    background: rgba(7,10,15,0.68);
+    border: 1px solid var(--line-strong);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    font-size: 0.8rem;
+    opacity: 0;
+    transition: opacity .3s;
+  }
+  .shot:hover .zoom-badge { opacity: 1; }
+
+  /* lightbox */
+  .lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: none;
+    place-items: center;
+    padding: 28px;
+    background: rgba(3,5,8,0.93);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    cursor: zoom-out;
+  }
+  .lightbox.open { display: grid; animation: fade .25s ease; }
+  @keyframes fade { from { opacity: 0 } to { opacity: 1 } }
+  .lightbox img {
+    max-width: min(1200px, 96vw);
+    max-height: 88vh;
+    border-radius: 12px;
+    border: 1px solid var(--line-strong);
+    box-shadow: 0 40px 100px -30px #000;
+  }
+  .lightbox .close {
+    position: absolute;
+    top: 20px; right: 24px;
+    font-size: 1.7rem;
+    color: var(--muted);
+    line-height: 1;
+    cursor: pointer;
+  }
+  .lightbox .close:hover { color: #fff; }
+
+  /* ============ warning ============ */
+  .warn {
+    position: relative;
+    border: 1px solid rgba(240,182,74,0.3);
+    border-radius: var(--radius);
+    background:
+      linear-gradient(150deg, rgba(240,182,74,0.11), rgba(240,182,74,0.03) 60%, transparent),
+      rgba(255,255,255,0.012);
+    padding: 32px 34px;
+    display: flex;
+    gap: 22px;
+    align-items: flex-start;
+    overflow: hidden;
+  }
+  .warn::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: linear-gradient(to bottom, var(--amber), rgba(240,182,74,0.15));
+  }
+  .warn .bang {
+    flex-shrink: 0;
+    width: 46px; height: 46px;
+    display: grid; place-items: center;
+    border-radius: 12px;
+    background: rgba(240,182,74,0.16);
+    border: 1px solid rgba(240,182,74,0.32);
+    font-size: 1.4rem;
+  }
+  .warn h3 {
+    font-size: 1.16rem;
+    color: var(--amber-soft);
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    margin-bottom: 10px;
+  }
+  .warn p { color: #dcc9a4; font-size: 0.96rem; margin-bottom: 11px; }
+  .warn p:last-child { margin-bottom: 0; }
+  .warn code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.87em;
+    background: rgba(240,182,74,0.14);
+    color: var(--amber-soft);
+    padding: 2px 7px;
+    border-radius: 5px;
+  }
+  @media (max-width: 620px) {
+    .warn { flex-direction: column; gap: 16px; padding: 26px 22px; }
   }
 
-  .card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 10px;
+  /* ============ steps ============ */
+  .steps { display: grid; gap: 12px; counter-reset: s; }
+  .step {
+    display: flex;
+    gap: 18px;
+    align-items: flex-start;
     padding: 20px 24px;
+    border: 1px solid var(--line);
+    border-radius: 13px;
+    background: var(--panel);
+    transition: border-color .3s, transform .3s, background .3s;
+  }
+  .step:hover { border-color: var(--line-strong); background: var(--panel-strong); transform: translateX(3px); }
+  .step .n {
+    counter-increment: s;
+    flex-shrink: 0;
+    width: 30px; height: 30px;
+    display: grid; place-items: center;
+    border-radius: 9px;
+    background: rgba(148,183,245,0.14);
+    border: 1px solid rgba(148,183,245,0.26);
+    color: var(--sky-bright);
+    font-weight: 700;
+    font-size: 0.85rem;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .step .n::before { content: counter(s); }
+  .step .body { padding-top: 2px; }
+  .step .body strong { display: block; font-weight: 600; margin-bottom: 3px; font-size: 0.99rem; }
+  .step .body span { color: var(--muted); font-size: 0.91rem; }
+  .step code, .inline-code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.86em;
+    background: rgba(255,255,255,0.07);
+    color: var(--sky-bright);
+    padding: 2px 6px;
+    border-radius: 5px;
   }
 
-  .warning {
-    background: var(--warn-bg);
-    border: 1px solid var(--warn-border);
-    color: var(--warn-text);
-    border-radius: 10px;
-    padding: 20px 24px;
+  /* ============ config ============ */
+  .cfg-wrap {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: 18px;
+    align-items: start;
+  }
+  @media (max-width: 900px) { .cfg-wrap { grid-template-columns: 1fr; } }
+
+  .code-card {
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: rgba(3,5,8,0.72);
+    overflow: hidden;
+    position: sticky;
+    top: 92px;
+  }
+  @media (max-width: 900px) { .code-card { position: static; } }
+  .code-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 11px 15px;
+    border-bottom: 1px solid var(--line);
+    background: rgba(255,255,255,0.025);
+  }
+  .code-head .file {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--muted);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .code-head .file::before {
+    content: '';
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--sky);
+    box-shadow: 0 0 8px var(--sky);
+  }
+  .copy-btn {
+    font-family: inherit;
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: var(--muted);
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    padding: 5px 11px;
+    cursor: pointer;
+    transition: color .2s, border-color .2s, background .2s;
+  }
+  .copy-btn:hover { color: var(--text); border-color: var(--line-strong); background: var(--panel-strong); }
+  .copy-btn.done { color: #86e0a8; border-color: rgba(134,224,168,0.4); }
+  pre {
+    padding: 19px 20px;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.845rem;
+    line-height: 1.85;
+  }
+  pre .k { color: var(--sky-bright); }
+  pre .n { color: #f0b64a; }
+  pre .p { color: var(--muted-dim); }
+
+  .cfg-list { display: grid; gap: 10px; }
+  .cfg-item {
+    border: 1px solid var(--line);
+    border-radius: 13px;
+    background: var(--panel);
+    padding: 17px 20px;
+    transition: border-color .3s, background .3s;
+  }
+  .cfg-item:hover { border-color: var(--line-strong); background: var(--panel-strong); }
+  .cfg-item .top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 7px;
+  }
+  .cfg-item .key {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--sky-bright);
+  }
+  .cfg-item .impact {
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .impact.high { background: rgba(240,120,90,0.16); color: #ffb49c; border: 1px solid rgba(240,120,90,0.3); }
+  .impact.mid  { background: rgba(240,182,74,0.14); color: var(--amber-soft); border: 1px solid rgba(240,182,74,0.28); }
+  .impact.low  { background: rgba(134,224,168,0.13); color: #9fe7bb; border: 1px solid rgba(134,224,168,0.26); }
+  .cfg-item p { color: var(--muted); font-size: 0.91rem; line-height: 1.58; }
+  .cfg-item .hint {
+    margin-top: 8px;
+    font-size: 0.85rem;
+    color: var(--muted-dim);
+    padding-left: 11px;
+    border-left: 2px solid var(--line-strong);
+  }
+
+  .tip {
+    margin-top: 22px;
+    padding: 18px 22px;
+    border: 1px dashed var(--line-strong);
+    border-radius: 13px;
+    background: rgba(148,183,245,0.05);
+    color: var(--muted);
+    font-size: 0.94rem;
+  }
+  .tip strong { color: var(--sky-bright); }
+
+  /* ============ compat ============ */
+  .compat { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+  .compat-card {
+    padding: 24px 25px;
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    background: var(--panel);
+  }
+  .compat-card.yes { border-color: rgba(134,224,168,0.28); background: linear-gradient(150deg, rgba(134,224,168,0.07), transparent 70%); }
+  .compat-card.no  { border-color: rgba(240,120,90,0.28);  background: linear-gradient(150deg, rgba(240,120,90,0.07), transparent 70%); }
+  .compat-card .hdr {
+    display: flex; align-items: center; gap: 11px;
+    font-weight: 700; font-size: 1.04rem;
+    margin-bottom: 10px;
+    letter-spacing: -0.01em;
+  }
+  .compat-card .mark {
+    width: 26px; height: 26px;
+    display: grid; place-items: center;
+    border-radius: 7px;
+    font-size: 0.85rem;
+    font-weight: 800;
+  }
+  .compat-card.yes .mark { background: rgba(134,224,168,0.18); color: #9fe7bb; }
+  .compat-card.no  .mark { background: rgba(240,120,90,0.18);  color: #ffb49c; }
+  .compat-card p { color: var(--muted); font-size: 0.92rem; }
+
+  /* ============ credits + footer ============ */
+  .credits {
+    display: grid;
+    gap: 12px;
+  }
+  .credit {
     display: flex;
     gap: 14px;
     align-items: flex-start;
+    padding: 18px 22px;
+    border: 1px solid var(--line);
+    border-radius: 13px;
+    background: var(--panel);
+    font-size: 0.94rem;
+    color: var(--muted);
   }
-  .warning .icon { font-size: 1.6rem; line-height: 1; }
-  .warning strong { color: #ffe1a8; }
+  .credit .glyph { color: var(--sky); flex-shrink: 0; }
+  .credit a { color: var(--sky-bright); border-bottom: 1px solid rgba(185,210,255,0.35); }
+  .credit a:hover { border-bottom-color: var(--sky-bright); }
+  .credit strong { color: var(--text); }
 
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 16px;
-    font-size: 0.95rem;
+  .cta-band {
+    max-width: var(--maxw);
+    margin: 30px auto 0;
+    padding: 0 24px;
   }
-  th, td {
-    text-align: left;
-    padding: 10px 12px;
-    border-bottom: 1px solid var(--border);
+  .cta-band-inner {
+    position: relative;
+    text-align: center;
+    padding: 60px 30px;
+    border: 1px solid var(--line-strong);
+    border-radius: 22px;
+    overflow: hidden;
+    background: rgba(11,16,23,0.6);
   }
-  th { color: var(--muted); font-weight: 600; }
-  code {
-    background: #1e2530;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 0.9em;
-    color: var(--accent);
+  .cta-band-inner .bg {
+    position: absolute; inset: 0;
+    background: url('assets/screenshot-2.jpg') center / cover no-repeat;
+    opacity: 0.20;
+    filter: saturate(1.1);
   }
-  pre {
-    background: #1e2530;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 18px;
-    overflow-x: auto;
+  .cta-band-inner .bg::after {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(ellipse 70% 80% at 50% 50%, rgba(7,10,15,0.6), rgba(7,10,15,0.92));
   }
-  pre code {
-    background: none;
-    padding: 0;
-    color: var(--text);
+  .cta-band-inner .fg { position: relative; z-index: 1; }
+  .cta-band-inner h2 {
+    font-size: clamp(1.6rem, 4vw, 2.3rem);
+    font-weight: 780;
+    letter-spacing: -0.028em;
+    margin-bottom: 12px;
   }
-
-  ol, ul { padding-left: 20px; }
-  ol li, ul li { margin-bottom: 8px; }
+  .cta-band-inner p { color: var(--muted); margin-bottom: 28px; }
 
   footer {
-    border-top: 1px solid var(--border);
-    padding: 32px 20px;
-    text-align: center;
-    color: var(--muted);
-    font-size: 0.9rem;
+    border-top: 1px solid var(--line);
+    margin-top: 90px;
+    padding: 34px 24px;
   }
-  footer a { color: var(--muted); }
+  .foot-inner {
+    max-width: var(--maxw);
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    color: var(--muted-dim);
+    font-size: 0.87rem;
+  }
+  .foot-inner a { color: var(--muted); }
+  .foot-inner a:hover { color: var(--text); }
+  .foot-brand { display: flex; align-items: center; gap: 10px; }
+  .foot-brand img { width: 20px; height: 20px; image-rendering: pixelated; opacity: .85; }
+
+  /* ============ reveal ============ */
+  .reveal {
+    opacity: 0;
+    transform: translateY(22px);
+    transition: opacity .7s cubic-bezier(.2,.8,.2,1), transform .7s cubic-bezier(.2,.8,.2,1);
+  }
+  .reveal.in { opacity: 1; transform: none; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+    .reveal { opacity: 1; transform: none; }
+    html { scroll-behavior: auto; }
+  }
 </style>
 </head>
 <body>
 
-<header class="hero">
-  <img class="hero-icon" src="assets/mirror-icon.png" alt="Mirror Cube icon">
-  <h1>Rageforge Mirror Cube</h1>
-  <p class="tagline">A fully reflective cube for Minecraft. It mirrors everything on all six sides — except you.</p>
-  <div class="badges">
-    <span class="badge">Minecraft 26.2</span>
-    <span class="badge">Fabric Loader 0.19+</span>
-    <span class="badge">Requires Fabric API</span>
-    <span class="badge">Free &amp; Community</span>
+<div class="ambient"></div>
+
+<nav id="nav">
+  <div class="nav-inner">
+    <a href="#top" class="brand">
+      <img src="assets/mirror-icon.png" alt="">
+      Rageforge <span style="color:var(--muted-dim);font-weight:500">/</span> Mirror Cube
+    </a>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#gallery">Gallery</a>
+      <a href="#install">Install</a>
+      <a href="#performance">Performance</a>
+      <a class="nav-cta" href="https://github.com/TheRealDevCH/Repotome_Rageforge_initials/releases">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2A10 10 0 002 12c0 4.42 2.87 8.17 6.84 9.5.5.09.66-.21.66-.47v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.08 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.56-1.11-4.56-4.95 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02a9.6 9.6 0 015 0c1.91-1.29 2.75-1.02 2.75-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.85-2.34 4.7-4.57 4.95.36.31.68.92.68 1.85v2.74c0 .27.16.57.67.47A10 10 0 0022 12A10 10 0 0012 2z"/></svg>
+        Download
+      </a>
+    </div>
   </div>
-  <div class="cta-row">
-    <a class="btn btn-primary" href="https://github.com/TheRealDevCH/Repotome_Rageforge_initials/releases">Download</a>
-    <a class="btn btn-secondary" href="https://github.com/TheRealDevCH/Repotome_Rageforge_initials">View on GitHub</a>
+</nav>
+
+<header class="hero" id="top">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <span class="eyebrow"><span class="dot"></span>Fabric · Minecraft 26.2</span>
+    <h1>A real mirror<br><span class="shine">for Minecraft.</span></h1>
+    <p class="lede">
+      The Rageforge Mirror Cube reflects the world on <strong>all six faces</strong> in real time —
+      terrain, mobs, sky, other mirrors. Everything, <strong>except you</strong>.
+    </p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="https://github.com/TheRealDevCH/Repotome_Rageforge_initials/releases">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        Download v0.1.0
+      </a>
+      <a class="btn btn-ghost" href="#gallery">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.6"/><path d="M21 15l-5-5L5 21"/></svg>
+        See it in action
+      </a>
+    </div>
+    <div class="spec-strip">
+      <div><span class="k">Minecraft</span><span class="v">26.2</span></div>
+      <div><span class="k">Loader</span><span class="v">Fabric 0.19+</span></div>
+      <div><span class="k">Requires</span><span class="v">Fabric API</span></div>
+      <div><span class="k">License</span><span class="v">MIT-based</span></div>
+      <div><span class="k">Price</span><span class="v">Free</span></div>
+    </div>
   </div>
+  <div class="scroll-hint"><span>Scroll</span><span class="line"></span></div>
 </header>
 
 <main>
 
-  <section>
-    <h2>What is this?</h2>
-    <p>
-      The <strong>Rageforge Mirror Cube</strong> is a Minecraft block that reflects on all six of its faces at once.
-      Place it down and it acts like a real mirror in every direction — you can see the world, mobs, and blocks around it,
-      but not yourself. Two cubes facing each other create a striking infinite-mirror effect.
-    </p>
-    <p>
-      It's built on top of the excellent <a href="https://github.com/Isaac-Harper/mirror" target="_blank" rel="noopener">Mirror</a>
-      mod by Isaac Harper (MIT license), extended by Rageforge with the full six-sided cube, a dedicated
-      "Rageforge" creative tab, and a few tweaks.
-    </p>
-  </section>
-
-  <section>
-    <div class="warning">
-      <div class="icon">⚠️</div>
-      <div>
-        <strong>Heads up: this mod is heavy on performance.</strong>
-        <p style="margin: 8px 0 0;">
-          Real-time reflections mean the game re-renders parts of the scene for every mirror face on screen, on top
-          of everything already being drawn. Depending on your settings and hardware this can noticeably drop your
-          FPS, especially with multiple cubes visible at once or high recursion depth.
-        </p>
-        <p style="margin: 8px 0 0;">
-          The good news: you're in control. All performance-relevant values live in
-          <code>config/mirror.json</code> — turn them down for smooth gameplay on weaker PCs, or crank them up
-          if your rig can handle a more accurate, deeper reflection.
-        </p>
+  <section id="features">
+    <div class="section-head reveal">
+      <span class="tag">What it does</span>
+      <h2>Six reflective faces, one block.</h2>
+      <p>Not a texture trick. The mod renders the scene again from the mirror's point of view, so reflections move, breathe and stack exactly like the real thing.</p>
+    </div>
+    <div class="feature-grid">
+      <div class="feature reveal">
+        <div class="ico">🧊</div>
+        <h3>Full cube reflection</h3>
+        <p>Every one of the six sides mirrors independently. Walk around it and the reflection follows you from every angle.</p>
+      </div>
+      <div class="feature reveal">
+        <div class="ico">👤</div>
+        <h3>You stay invisible</h3>
+        <p>The world, mobs and blocks show up in the reflection — your own player model never does. A mirror that refuses to show you.</p>
+      </div>
+      <div class="feature reveal">
+        <div class="ico">♾️</div>
+        <h3>Infinite mirror effect</h3>
+        <p>Face two cubes at each other and the reflection recurses into itself, as deep as your <span class="inline-code">recursionDepth</span> allows.</p>
+      </div>
+      <div class="feature reveal">
+        <div class="ico">🎛️</div>
+        <h3>Tunable to your rig</h3>
+        <p>Seven values in one JSON file let you trade visual depth for framerate — from potato-safe to showcase quality.</p>
+      </div>
+      <div class="feature reveal">
+        <div class="ico">🧱</div>
+        <h3>Classic wall mirror too</h3>
+        <p>Besides the cube you also get the original flat, wall-mounted mirror block for interiors and builds.</p>
+      </div>
+      <div class="feature reveal">
+        <div class="ico">⚡</div>
+        <h3>Sodium compatible</h3>
+        <p>The reflection pass hooks into Sodium's terrain renderer and restores it cleanly afterwards.</p>
       </div>
     </div>
   </section>
 
-  <section>
-    <h2>Requirements</h2>
-    <ul>
-      <li>Minecraft Java Edition <strong>26.2</strong></li>
-      <li>Fabric Loader <strong>0.19+</strong></li>
-      <li><a href="https://modrinth.com/mod/fabric-api" target="_blank" rel="noopener">Fabric API</a> for 26.2</li>
-    </ul>
+  <section id="gallery">
+    <div class="section-head reveal">
+      <span class="tag">Gallery</span>
+      <h2>In-game, unedited.</h2>
+      <p>Screenshots straight from Minecraft 26.2 with the Mirror Cube placed in the world.</p>
+    </div>
+    <div class="gallery">
+      <figure class="shot reveal" data-full="assets/screenshot-1.jpg">
+        <span class="zoom-badge">⤢</span>
+        <img src="assets/screenshot-1.jpg" alt="Mirror Cube reflecting the landscape and sky in Minecraft" loading="lazy">
+        <figcaption>The cube picking up terrain, sky and light from every side.</figcaption>
+      </figure>
+      <figure class="shot reveal" data-full="assets/screenshot-2.jpg">
+        <span class="zoom-badge">⤢</span>
+        <img src="assets/screenshot-2.jpg" alt="Mirror Cube reflection detail in Minecraft" loading="lazy">
+        <figcaption>Reflections update live as you move around the block.</figcaption>
+      </figure>
+    </div>
   </section>
 
-  <section>
-    <h2>Installation</h2>
-    <ol>
-      <li>Install Fabric Loader for Minecraft 26.2.</li>
-      <li>Download Fabric API and put it in your <code>mods</code> folder.</li>
-      <li>Copy the mod jars from this repo's <code>mods/</code> folder into your <code>mods</code> folder.</li>
-      <li>Optional: copy <code>config/mirror.json</code> into your <code>config</code> folder to pre-tune performance settings.</li>
-      <li>Launch the game.</li>
-    </ol>
+  <section id="performance">
+    <div class="warn reveal">
+      <div class="bang">⚠</div>
+      <div>
+        <h3>Read this first: the mod is performance-heavy.</h3>
+        <p>
+          Real reflections mean the game re-renders parts of the scene for <em>every mirror face on screen</em>,
+          on top of everything it already draws. Depending on your hardware and settings this can noticeably
+          cut your FPS — especially with several cubes visible at once or a high recursion depth.
+        </p>
+        <p>
+          The good news: you're fully in control. Every performance-relevant value lives in
+          <code>config/mirror.json</code>. Turn them down for smooth gameplay on a weaker PC,
+          or push them up if your rig can take deeper, sharper reflections.
+        </p>
+      </div>
+    </div>
+
+    <div class="section-head reveal" style="margin-top:64px">
+      <span class="tag">Configuration</span>
+      <h2>Seven dials in <span style="font-family:'JetBrains Mono',monospace;font-size:0.72em;color:var(--sky-bright)">config/mirror.json</span></h2>
+      <p>Lower values mean better performance. Higher values mean richer reflections and more GPU/CPU load.</p>
+    </div>
+
+    <div class="cfg-wrap">
+      <div class="code-card reveal">
+        <div class="code-head">
+          <span class="file">config/mirror.json</span>
+          <button class="copy-btn" id="copyBtn">Copy</button>
+        </div>
+        <pre id="cfgCode">{
+  <span class="k">"maxReflections"</span><span class="p">:</span> <span class="n">10</span><span class="p">,</span>
+  <span class="k">"recursionDepth"</span><span class="p">:</span> <span class="n">4</span><span class="p">,</span>
+  <span class="k">"nestedPerParent"</span><span class="p">:</span> <span class="n">2</span><span class="p">,</span>
+  <span class="k">"maxRenderPasses"</span><span class="p">:</span> <span class="n">48</span><span class="p">,</span>
+  <span class="k">"reflectionDistanceChunks"</span><span class="p">:</span> <span class="n">10</span><span class="p">,</span>
+  <span class="k">"fogStartBlocks"</span><span class="p">:</span> <span class="n">100</span><span class="p">,</span>
+  <span class="k">"resolutionScale"</span><span class="p">:</span> <span class="n">0.85</span>
+}</pre>
+      </div>
+
+      <div class="cfg-list">
+        <div class="cfg-item reveal">
+          <div class="top"><span class="key">resolutionScale</span><span class="impact high">Biggest FPS win</span></div>
+          <p>Render resolution of the reflection relative to your normal resolution. <span class="inline-code">1.0</span> is full quality.</p>
+          <div class="hint">Drop to 0.6–0.7 first if you need frames back.</div>
+        </div>
+        <div class="cfg-item reveal">
+          <div class="top"><span class="key">recursionDepth</span><span class="impact high">High impact</span></div>
+          <p>How many times a mirror may reflect into another mirror. Higher gets closer to a true infinite mirror.</p>
+          <div class="hint">Lower it if two facing cubes tank your framerate.</div>
+        </div>
+        <div class="cfg-item reveal">
+          <div class="top"><span class="key">maxReflections</span><span class="impact mid">Medium impact</span></div>
+          <p>Maximum number of mirror surfaces rendered at the same time.</p>
+          <div class="hint">Lower it when many mirrors are visible at once.</div>
+        </div>
+        <div class="cfg-item reveal">
+          <div class="top"><span class="key">maxRenderPasses</span><span class="impact mid">Safety net</span></div>
+          <p>Hard cap on total render passes spent on reflections — your overall performance budget.</p>
+          <div class="hint">Use it as a strict FPS guardrail regardless of other values.</div>
+        </div>
+        <div class="cfg-item reveal">
+          <div class="top"><span class="key">nestedPerParent</span><span class="impact mid">Medium impact</span></div>
+          <p>How many nested reflections are allowed per parent reflection.</p>
+          <div class="hint">Lower it if complex mirror setups feel laggy.</div>
+        </div>
+        <div class="cfg-item reveal">
+          <div class="top"><span class="key">reflectionDistanceChunks</span><span class="impact low">Situational</span></div>
+          <p>How far, in chunks, the reflected view reaches into the world.</p>
+          <div class="hint">Lower it if distant terrain in reflections doesn't matter to you.</div>
+        </div>
+        <div class="cfg-item reveal">
+          <div class="top"><span class="key">fogStartBlocks</span><span class="impact low">Situational</span></div>
+          <p>Distance at which fog fades the reflection out, hiding far-away render cost.</p>
+          <div class="hint">Lower it to fade reflections sooner and save work.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tip reveal">
+      <strong>Quick tuning recipe:</strong> if the mod feels heavy, cut <span class="inline-code">resolutionScale</span> to
+      <span class="inline-code">0.65</span> and <span class="inline-code">recursionDepth</span> to <span class="inline-code">2</span> first.
+      That combination usually recovers the most frames for the smallest visual trade-off.
+    </div>
   </section>
 
-  <section>
-    <h2>How to use it</h2>
-    <ul>
-      <li>Open the <strong>Rageforge</strong> creative tab.</li>
-      <li>Place the <strong>Mirror Cube</strong> — a full block, all sides reflective.</li>
-      <li>The classic wall-mounted <strong>Mirror</strong> block is also available in the same tab.</li>
-      <li>Place two mirrors facing each other for an infinite-mirror effect.</li>
-    </ul>
+  <section id="install">
+    <div class="section-head reveal">
+      <span class="tag">Setup</span>
+      <h2>Installed in five steps.</h2>
+      <p>Standard Fabric workflow — no launcher plugins, no extra tooling.</p>
+    </div>
+    <div class="steps">
+      <div class="step reveal">
+        <span class="n"></span>
+        <div class="body"><strong>Install Fabric Loader 0.19+</strong><span>For Minecraft Java Edition 26.2.</span></div>
+      </div>
+      <div class="step reveal">
+        <span class="n"></span>
+        <div class="body"><strong>Add Fabric API</strong><span>Download the 26.2 build and drop it into your <code>mods</code> folder.</span></div>
+      </div>
+      <div class="step reveal">
+        <span class="n"></span>
+        <div class="body"><strong>Copy both mod jars</strong><span>Put <code>mirror-0.3.0-rageforge+26.2.jar</code> and <code>rageforge-0.1.0+26.2.jar</code> into <code>mods</code>.</span></div>
+      </div>
+      <div class="step reveal">
+        <span class="n"></span>
+        <div class="body"><strong>Optional: pre-tune performance</strong><span>Copy <code>config/mirror.json</code> into your <code>config</code> folder before first launch.</span></div>
+      </div>
+      <div class="step reveal">
+        <span class="n"></span>
+        <div class="body"><strong>Launch and open the Rageforge tab</strong><span>Find the <em>Mirror Cube</em> and the classic <em>Mirror</em> in the creative inventory.</span></div>
+      </div>
+    </div>
   </section>
 
-  <section>
-    <h2>Performance settings (<code>config/mirror.json</code>)</h2>
-    <p>
-      Edit this file to balance visual quality against FPS. Lower values = better performance,
-      higher values = better/deeper reflections but more GPU/CPU load.
-    </p>
-    <pre><code>{
-  "maxReflections": 10,
-  "recursionDepth": 4,
-  "nestedPerParent": 2,
-  "maxRenderPasses": 48,
-  "reflectionDistanceChunks": 10,
-  "fogStartBlocks": 100,
-  "resolutionScale": 0.85
-}</code></pre>
-
-    <table>
-      <thead>
-        <tr><th>Setting</th><th>What it does</th><th>Lower it if…</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><code>maxReflections</code></td>
-          <td>Maximum number of mirror surfaces rendered at once.</td>
-          <td>You have many mirrors visible and get low FPS.</td>
-        </tr>
-        <tr>
-          <td><code>recursionDepth</code></td>
-          <td>How many times a mirror can reflect into another mirror (mirror-in-a-mirror). Higher = closer to a true infinite mirror.</td>
-          <td>Two facing mirrors tank your framerate.</td>
-        </tr>
-        <tr>
-          <td><code>nestedPerParent</code></td>
-          <td>How many nested reflections are allowed per parent reflection.</td>
-          <td>Complex reflection setups feel laggy.</td>
-        </tr>
-        <tr>
-          <td><code>maxRenderPasses</code></td>
-          <td>Hard cap on total render passes spent on reflections — the overall performance budget.</td>
-          <td>You want a strict FPS safety net regardless of other settings.</td>
-        </tr>
-        <tr>
-          <td><code>reflectionDistanceChunks</code></td>
-          <td>How far (in chunks) the reflected view extends.</td>
-          <td>Reflections of distant terrain aren't important to you.</td>
-        </tr>
-        <tr>
-          <td><code>fogStartBlocks</code></td>
-          <td>Distance at which fog starts fading in the reflection, hiding far-away render cost.</td>
-          <td>You want reflections to fade out sooner to save performance.</td>
-        </tr>
-        <tr>
-          <td><code>resolutionScale</code></td>
-          <td>Render resolution of the reflection relative to your normal resolution (1.0 = full quality).</td>
-          <td>You need the single biggest FPS win — this has the most impact.</td>
-        </tr>
-      </tbody>
-    </table>
-
-    <p>
-      <strong>Tip:</strong> if the mod feels heavy, start by lowering <code>resolutionScale</code> and
-      <code>recursionDepth</code> first — they usually give the biggest performance gains for the smallest
-      visual trade-off.
-    </p>
+  <section id="compat">
+    <div class="section-head reveal">
+      <span class="tag">Compatibility</span>
+      <h2>Works with Sodium. Not with Iris.</h2>
+    </div>
+    <div class="compat">
+      <div class="compat-card yes reveal">
+        <div class="hdr"><span class="mark">✓</span> Sodium</div>
+        <p>Supported. During a reflection pass the mod temporarily redirects Sodium's terrain rendering into the mirror's view, then restores it.</p>
+      </div>
+      <div class="compat-card no reveal">
+        <div class="hdr"><span class="mark">✕</span> Iris / Shaders</div>
+        <p>Not compatible. Iris replaces the render pipeline that the reflection pass depends on, so mirrors cannot draw their view.</p>
+      </div>
+    </div>
   </section>
 
-  <section>
-    <h2>Compatibility</h2>
-    <ul>
-      <li>✅ Works with <strong>Sodium</strong> — the mod temporarily redirects Sodium's terrain rendering into the mirror's view during a reflection pass, then restores it.</li>
-      <li>❌ <strong>Not compatible with Iris</strong> — Iris replaces the render pipeline that the reflection pass relies on.</li>
-    </ul>
+  <section id="credits">
+    <div class="section-head reveal">
+      <span class="tag">Credits</span>
+      <h2>Standing on good work.</h2>
+    </div>
+    <div class="credits">
+      <div class="credit reveal">
+        <span class="glyph">◆</span>
+        <div>Reflection engine based on <a href="https://github.com/Isaac-Harper/mirror" target="_blank" rel="noopener">Mirror</a> by <strong>Isaac Harper</strong> — licensed under MIT.</div>
+      </div>
+      <div class="credit reveal">
+        <span class="glyph">◆</span>
+        <div>Mirror Cube block, Rageforge creative tab and integration by <strong>Rageforge</strong>.</div>
+      </div>
+      <div class="credit reveal">
+        <span class="glyph">◆</span>
+        <div>Free for the community. Built for Minecraft <strong>26.2</strong> on Fabric.</div>
+      </div>
+    </div>
   </section>
 
-  <section>
-    <h2>Credits</h2>
-    <ul>
-      <li>Reflection engine based on <a href="https://github.com/Isaac-Harper/mirror" target="_blank" rel="noopener">Mirror</a> by Isaac Harper — licensed under MIT.</li>
-      <li>Mirror Cube, Rageforge creative tab, and integration by <strong>Rageforge</strong>.</li>
-    </ul>
-  </section>
+  <div class="cta-band">
+    <div class="cta-band-inner reveal">
+      <div class="bg"></div>
+      <div class="fg">
+        <h2>Put a mirror in your world.</h2>
+        <p>Download, drop into <span class="inline-code">mods</span>, and start reflecting.</p>
+        <div class="cta-row" style="margin-bottom:0">
+          <a class="btn btn-primary" href="https://github.com/TheRealDevCH/Repotome_Rageforge_initials/releases">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            Get the mod
+          </a>
+          <a class="btn btn-ghost" href="https://github.com/TheRealDevCH/Repotome_Rageforge_initials">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2A10 10 0 002 12c0 4.42 2.87 8.17 6.84 9.5.5.09.66-.21.66-.47v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.08 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.56-1.11-4.56-4.95 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02a9.6 9.6 0 015 0c1.91-1.29 2.75-1.02 2.75-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.85-2.34 4.7-4.57 4.95.36.31.68.92.68 1.85v2.74c0 .27.16.57.67.47A10 10 0 0022 12A10 10 0 0012 2z"/></svg>
+            Source on GitHub
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
 
 </main>
 
 <footer>
-  <p>Rageforge Mirror Cube · Free for the community · <a href="https://github.com/TheRealDevCH/Repotome_Rageforge_initials">Source on GitHub</a></p>
+  <div class="foot-inner">
+    <div class="foot-brand">
+      <img src="assets/mirror-icon.png" alt="">
+      <span>Rageforge Mirror Cube</span>
+    </div>
+    <div>
+      <a href="https://github.com/TheRealDevCH/Repotome_Rageforge_initials">GitHub</a> ·
+      <a href="https://github.com/TheRealDevCH/Repotome_Rageforge_initials/releases">Releases</a> ·
+      <a href="https://github.com/Isaac-Harper/mirror" target="_blank" rel="noopener">Upstream Mirror (MIT)</a>
+    </div>
+  </div>
 </footer>
+
+<div class="lightbox" id="lightbox">
+  <span class="close">✕</span>
+  <img src="" alt="">
+</div>
+
+<script>
+  // sticky nav state
+  const nav = document.getElementById('nav');
+  const onScroll = () => nav.classList.toggle('scrolled', window.scrollY > 24);
+  onScroll();
+  window.addEventListener('scroll', onScroll, { passive: true });
+
+  // scroll reveal
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        e.target.style.transitionDelay = (i * 55) + 'ms';
+        e.target.classList.add('in');
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  // hero parallax
+  const heroBg = document.querySelector('.hero-bg');
+  window.addEventListener('scroll', () => {
+    const y = window.scrollY;
+    if (y < window.innerHeight) heroBg.style.transform = `scale(1.08) translateY(${y * 0.22}px)`;
+  }, { passive: true });
+
+  // feature spotlight
+  document.querySelectorAll('.feature').forEach(card => {
+    card.addEventListener('pointermove', e => {
+      const r = card.getBoundingClientRect();
+      card.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100) + '%');
+      card.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100) + '%');
+    });
+  });
+
+  // copy config
+  const copyBtn = document.getElementById('copyBtn');
+  copyBtn.addEventListener('click', async () => {
+    const text = document.getElementById('cfgCode').innerText;
+    try {
+      await navigator.clipboard.writeText(text);
+      copyBtn.textContent = 'Copied';
+      copyBtn.classList.add('done');
+      setTimeout(() => { copyBtn.textContent = 'Copy'; copyBtn.classList.remove('done'); }, 1800);
+    } catch (_) {
+      copyBtn.textContent = 'Press Ctrl+C';
+    }
+  });
+
+  // lightbox
+  const lb = document.getElementById('lightbox');
+  const lbImg = lb.querySelector('img');
+  document.querySelectorAll('.shot').forEach(fig => {
+    fig.addEventListener('click', () => {
+      lbImg.src = fig.dataset.full;
+      lbImg.alt = fig.querySelector('img').alt;
+      lb.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    });
+  });
+  const closeLb = () => { lb.classList.remove('open'); document.body.style.overflow = ''; };
+  lb.addEventListener('click', closeLb);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLb(); });
+</script>
 
 </body>
 </html>
