@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rageforge Mirror Cube — Minecraft Mod</title>
+<meta name="description" content="Rageforge Mirror Cube — a full 6-sided mirror block for Minecraft 26.2 (Fabric). Reflects everything except you.">
+<link rel="icon" type="image/png" href="assets/mirror-icon.png">
+<style>
+  :root {
+    --bg: #0d1117;
+    --bg-alt: #11151c;
+    --card: #161b22;
+    --border: #2a3140;
+    --text: #e6edf3;
+    --muted: #9aa7b6;
+    --accent: #6ee7ff;
+    --accent-2: #7c8cff;
+    --warn-bg: #2b1f0f;
+    --warn-border: #8a5a00;
+    --warn-text: #ffcf7a;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  header.hero {
+    background: radial-gradient(1200px 500px at 50% -10%, rgba(124,140,255,0.18), transparent 60%), var(--bg-alt);
+    border-bottom: 1px solid var(--border);
+    padding: 64px 20px 48px;
+    text-align: center;
+  }
+  .hero-icon {
+    width: 72px;
+    height: 72px;
+    image-rendering: pixelated;
+    margin-bottom: 16px;
+  }
+  .hero h1 {
+    font-size: 2.4rem;
+    margin: 0 0 8px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .hero p.tagline {
+    color: var(--muted);
+    font-size: 1.15rem;
+    max-width: 640px;
+    margin: 0 auto;
+  }
+  .badges {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .badge {
+    font-size: 0.8rem;
+    padding: 4px 10px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    color: var(--muted);
+    background: var(--card);
+  }
+
+  .cta-row {
+    margin-top: 28px;
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .btn {
+    display: inline-block;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .btn-primary {
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    color: #0d1117;
+  }
+  .btn-primary:hover { text-decoration: none; filter: brightness(1.08); }
+  .btn-secondary {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { text-decoration: none; border-color: var(--accent); }
+
+  main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 48px 20px 80px;
+  }
+
+  section { margin-bottom: 56px; }
+  h2 {
+    font-size: 1.5rem;
+    border-left: 4px solid var(--accent-2);
+    padding-left: 12px;
+    margin-bottom: 20px;
+  }
+
+  .gallery {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 24px 0;
+  }
+  .gallery img {
+    width: 100%;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+  @media (max-width: 640px) {
+    .gallery { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+  }
+
+  .warning {
+    background: var(--warn-bg);
+    border: 1px solid var(--warn-border);
+    color: var(--warn-text);
+    border-radius: 10px;
+    padding: 20px 24px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .warning .icon { font-size: 1.6rem; line-height: 1; }
+  .warning strong { color: #ffe1a8; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 16px;
+    font-size: 0.95rem;
+  }
+  th, td {
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  th { color: var(--muted); font-weight: 600; }
+  code {
+    background: #1e2530;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    color: var(--accent);
+  }
+  pre {
+    background: #1e2530;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px;
+    overflow-x: auto;
+  }
+  pre code {
+    background: none;
+    padding: 0;
+    color: var(--text);
+  }
+
+  ol, ul { padding-left: 20px; }
+  ol li, ul li { margin-bottom: 8px; }
+
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 32px 20px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+  footer a { color: var(--muted); }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <img class="hero-icon" src="assets/mirror-icon.png" alt="Mirror Cube icon">
+  <h1>Rageforge Mirror Cube</h1>
+  <p class="tagline">A fully reflective cube for Minecraft. It mirrors everything on all six sides — except you.</p>
+  <div class="badges">
+    <span class="badge">Minecraft 26.2</span>
+    <span class="badge">Fabric Loader 0.19+</span>
+    <span class="badge">Requires Fabric API</span>
+    <span class="badge">Free &amp; Community</span>
+  </div>
+  <div class="cta-row">
+    <a class="btn btn-primary" href="https://github.com/TheRealDevCH/Repotome_Rageforge_initials/releases">Download</a>
+    <a class="btn btn-secondary" href="https://github.com/TheRealDevCH/Repotome_Rageforge_initials">View on GitHub</a>
+  </div>
+</header>
+
+<main>
+
+  <section>
+    <h2>What is this?</h2>
+    <p>
+      The <strong>Rageforge Mirror Cube</strong> is a Minecraft block that reflects on all six of its faces at once.
+      Place it down and it acts like a real mirror in every direction — you can see the world, mobs, and blocks around it,
+      but not yourself. Two cubes facing each other create a striking infinite-mirror effect.
+    </p>
+    <p>
+      It's built on top of the excellent <a href="https://github.com/Isaac-Harper/mirror" target="_blank" rel="noopener">Mirror</a>
+      mod by Isaac Harper (MIT license), extended by Rageforge with the full six-sided cube, a dedicated
+      "Rageforge" creative tab, and a few tweaks.
+    </p>
+  </section>
+
+  <section>
+    <div class="warning">
+      <div class="icon">⚠️</div>
+      <div>
+        <strong>Heads up: this mod is heavy on performance.</strong>
+        <p style="margin: 8px 0 0;">
+          Real-time reflections mean the game re-renders parts of the scene for every mirror face on screen, on top
+          of everything already being drawn. Depending on your settings and hardware this can noticeably drop your
+          FPS, especially with multiple cubes visible at once or high recursion depth.
+        </p>
+        <p style="margin: 8px 0 0;">
+          The good news: you're in control. All performance-relevant values live in
+          <code>config/mirror.json</code> — turn them down for smooth gameplay on weaker PCs, or crank them up
+          if your rig can handle a more accurate, deeper reflection.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Requirements</h2>
+    <ul>
+      <li>Minecraft Java Edition <strong>26.2</strong></li>
+      <li>Fabric Loader <strong>0.19+</strong></li>
+      <li><a href="https://modrinth.com/mod/fabric-api" target="_blank" rel="noopener">Fabric API</a> for 26.2</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Installation</h2>
+    <ol>
+      <li>Install Fabric Loader for Minecraft 26.2.</li>
+      <li>Download Fabric API and put it in your <code>mods</code> folder.</li>
+      <li>Copy the mod jars from this repo's <code>mods/</code> folder into your <code>mods</code> folder.</li>
+      <li>Optional: copy <code>config/mirror.json</code> into your <code>config</code> folder to pre-tune performance settings.</li>
+      <li>Launch the game.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>How to use it</h2>
+    <ul>
+      <li>Open the <strong>Rageforge</strong> creative tab.</li>
+      <li>Place the <strong>Mirror Cube</strong> — a full block, all sides reflective.</li>
+      <li>The classic wall-mounted <strong>Mirror</strong> block is also available in the same tab.</li>
+      <li>Place two mirrors facing each other for an infinite-mirror effect.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Performance settings (<code>config/mirror.json</code>)</h2>
+    <p>
+      Edit this file to balance visual quality against FPS. Lower values = better performance,
+      higher values = better/deeper reflections but more GPU/CPU load.
+    </p>
+    <pre><code>{
+  "maxReflections": 10,
+  "recursionDepth": 4,
+  "nestedPerParent": 2,
+  "maxRenderPasses": 48,
+  "reflectionDistanceChunks": 10,
+  "fogStartBlocks": 100,
+  "resolutionScale": 0.85
+}</code></pre>
+
+    <table>
+      <thead>
+        <tr><th>Setting</th><th>What it does</th><th>Lower it if…</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>maxReflections</code></td>
+          <td>Maximum number of mirror surfaces rendered at once.</td>
+          <td>You have many mirrors visible and get low FPS.</td>
+        </tr>
+        <tr>
+          <td><code>recursionDepth</code></td>
+          <td>How many times a mirror can reflect into another mirror (mirror-in-a-mirror). Higher = closer to a true infinite mirror.</td>
+          <td>Two facing mirrors tank your framerate.</td>
+        </tr>
+        <tr>
+          <td><code>nestedPerParent</code></td>
+          <td>How many nested reflections are allowed per parent reflection.</td>
+          <td>Complex reflection setups feel laggy.</td>
+        </tr>
+        <tr>
+          <td><code>maxRenderPasses</code></td>
+          <td>Hard cap on total render passes spent on reflections — the overall performance budget.</td>
+          <td>You want a strict FPS safety net regardless of other settings.</td>
+        </tr>
+        <tr>
+          <td><code>reflectionDistanceChunks</code></td>
+          <td>How far (in chunks) the reflected view extends.</td>
+          <td>Reflections of distant terrain aren't important to you.</td>
+        </tr>
+        <tr>
+          <td><code>fogStartBlocks</code></td>
+          <td>Distance at which fog starts fading in the reflection, hiding far-away render cost.</td>
+          <td>You want reflections to fade out sooner to save performance.</td>
+        </tr>
+        <tr>
+          <td><code>resolutionScale</code></td>
+          <td>Render resolution of the reflection relative to your normal resolution (1.0 = full quality).</td>
+          <td>You need the single biggest FPS win — this has the most impact.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>
+      <strong>Tip:</strong> if the mod feels heavy, start by lowering <code>resolutionScale</code> and
+      <code>recursionDepth</code> first — they usually give the biggest performance gains for the smallest
+      visual trade-off.
+    </p>
+  </section>
+
+  <section>
+    <h2>Compatibility</h2>
+    <ul>
+      <li>✅ Works with <strong>Sodium</strong> — the mod temporarily redirects Sodium's terrain rendering into the mirror's view during a reflection pass, then restores it.</li>
+      <li>❌ <strong>Not compatible with Iris</strong> — Iris replaces the render pipeline that the reflection pass relies on.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Credits</h2>
+    <ul>
+      <li>Reflection engine based on <a href="https://github.com/Isaac-Harper/mirror" target="_blank" rel="noopener">Mirror</a> by Isaac Harper — licensed under MIT.</li>
+      <li>Mirror Cube, Rageforge creative tab, and integration by <strong>Rageforge</strong>.</li>
+    </ul>
+  </section>
+
+</main>
+
+<footer>
+  <p>Rageforge Mirror Cube · Free for the community · <a href="https://github.com/TheRealDevCH/Repotome_Rageforge_initials">Source on GitHub</a></p>
+</footer>
+
+</body>
+</html>
