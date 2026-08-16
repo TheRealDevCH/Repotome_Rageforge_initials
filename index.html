@@ -4,378 +4,191 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Rageforge Mirror Cube — A Real Mirror for Minecraft</title>
-<meta name="description" content="Rageforge Mirror Cube — a fully reflective six-sided mirror block for Minecraft 26.2 (Fabric). Reflects the whole world, except you.">
+<meta name="description" content="Rageforge Mirror Cube — a borderless, fully reflective six-sided mirror block for Minecraft 26.2 (Fabric). Real planar reflections. Everything except you.">
+<meta name="theme-color" content="#04070b">
 <meta property="og:title" content="Rageforge Mirror Cube — A Real Mirror for Minecraft">
-<meta property="og:description" content="A fully reflective six-sided mirror block for Minecraft 26.2 (Fabric). Reflects everything, except you.">
+<meta property="og:description" content="A borderless six-sided mirror block with true planar reflections for Minecraft 26.2 on Fabric.">
 <meta property="og:image" content="assets/screenshot-1.jpg">
 <meta property="og:type" content="website">
-<link rel="icon" type="image/png" href="assets/mirror-icon.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/site.css">
 <style>
-  :root {
-    --ink-900: #070a0f;
-    --ink-800: #0b1017;
-    --ink-700: #10161f;
-    --panel: rgba(255,255,255,0.045);
-    --panel-strong: rgba(255,255,255,0.07);
-    --line: rgba(255,255,255,0.10);
-    --line-strong: rgba(255,255,255,0.18);
-    --text: #eef2f8;
-    --muted: #9dabbd;
-    --muted-dim: #74839a;
-    --sky: #94b7f5;
-    --sky-bright: #b9d2ff;
-    --silver: #d8dee9;
-    --sand: #c0bcae;
-    --amber: #f0b64a;
-    --amber-soft: #ffd894;
-    --radius: 16px;
-    --radius-sm: 10px;
-    --shadow: 0 20px 60px -20px rgba(0,0,0,0.8);
-    --maxw: 1080px;
+  /* ================= hero ================= */
+  .hero {
+    position: relative;
+    min-height: 100svh;
+    display: grid;
+    grid-template-rows: 1fr auto;
+    overflow: hidden;
   }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  html { scroll-behavior: smooth; scroll-padding-top: 90px; }
-
-  body {
-    background: var(--ink-900);
-    color: var(--text);
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    font-size: 16.5px;
-    line-height: 1.65;
-    -webkit-font-smoothing: antialiased;
-    overflow-x: hidden;
-  }
-
-  a { color: inherit; text-decoration: none; }
-  img { display: block; max-width: 100%; }
-
-  ::selection { background: rgba(148,183,245,0.3); }
-
-  /* ============ ambient background ============ */
-  .ambient {
-    position: fixed;
+  .hero-photo {
+    position: absolute;
     inset: 0;
-    z-index: -1;
-    pointer-events: none;
-    background:
-      radial-gradient(900px 600px at 15% -5%, rgba(148,183,245,0.14), transparent 65%),
-      radial-gradient(800px 500px at 88% 8%, rgba(192,188,174,0.09), transparent 62%),
-      radial-gradient(700px 700px at 50% 100%, rgba(148,183,245,0.06), transparent 65%);
+    z-index: 0;
+    background: url('assets/screenshot-1.jpg') center 38% / cover no-repeat;
+    opacity: 0.17;
+    filter: saturate(1.1);
+    transform: scale(1.06);
   }
-  .ambient::after {
+  .hero-photo::after {
     content: '';
     position: absolute;
     inset: 0;
-    opacity: 0.22;
-    background-image:
-      linear-gradient(rgba(255,255,255,0.045) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.045) 1px, transparent 1px);
-    background-size: 64px 64px;
-    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 30%, transparent 75%);
-    -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 30%, transparent 75%);
+    background:
+      linear-gradient(to bottom, rgba(4,7,11,0.72) 0%, rgba(4,7,11,0.8) 50%, var(--ink-950) 100%),
+      radial-gradient(ellipse 62% 52% at 50% 44%, transparent 12%, rgba(4,7,11,0.72) 100%);
   }
 
-  /* ============ nav ============ */
-  nav {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    z-index: 100;
-    padding: 14px 24px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 20px;
-    backdrop-filter: blur(18px) saturate(140%);
-    -webkit-backdrop-filter: blur(18px) saturate(140%);
-    background: rgba(7,10,15,0.55);
-    border-bottom: 1px solid transparent;
-    transition: border-color .3s, background .3s, padding .3s;
+  /* 3D stage */
+  .stage {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    cursor: grab;
+    touch-action: pan-y;
+    transition: opacity 0.2s linear;
   }
-  nav.scrolled {
-    border-bottom-color: var(--line);
-    background: rgba(7,10,15,0.85);
-    padding: 10px 24px;
-  }
-  .nav-inner {
+  .stage.grabbing { cursor: grabbing; }
+  #cube-canvas {
     width: 100%;
-    max-width: var(--maxw);
-    margin: 0 auto;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 20px;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 1.1s var(--ease);
   }
-  .brand {
-    display: flex;
-    align-items: center;
-    gap: 11px;
-    font-weight: 700;
-    letter-spacing: -0.01em;
-    font-size: 0.98rem;
-    white-space: nowrap;
-  }
-  .brand img {
-    width: 28px; height: 28px;
-    image-rendering: pixelated;
-    border-radius: 6px;
-    box-shadow: 0 0 0 1px var(--line), 0 4px 14px -4px rgba(148,183,245,0.5);
-  }
-  .nav-links {
-    display: flex;
-    gap: 4px;
-    align-items: center;
-  }
-  .nav-links a {
-    color: var(--muted);
-    font-size: 0.9rem;
-    font-weight: 500;
-    padding: 7px 13px;
-    border-radius: 8px;
-    transition: color .2s, background .2s;
-  }
-  .nav-links a:hover { color: var(--text); background: var(--panel); }
-  .nav-cta {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    padding: 8px 16px !important;
-    background: var(--text) !important;
-    color: var(--ink-900) !important;
-    font-weight: 600 !important;
-    border-radius: 9px;
-    transition: transform .2s, box-shadow .2s !important;
-  }
-  .nav-cta:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 8px 22px -8px rgba(238,242,248,0.6);
-  }
-  @media (max-width: 780px) {
-    .nav-links a:not(.nav-cta) { display: none; }
-  }
+  #cube-canvas.ready { opacity: 1; }
 
-  /* ============ hero ============ */
-  header.hero {
+  .hero-copy {
     position: relative;
-    min-height: 100vh;
+    z-index: 2;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: 130px 24px 70px;
-    overflow: hidden;
+    padding: calc(var(--nav-h) + 46px) 24px 20px;
+    pointer-events: none;
   }
-  .hero-bg {
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    background: url('assets/screenshot-1.jpg') center 35% / cover no-repeat;
-    opacity: 0.30;
-    transform: scale(1.08);
-    filter: saturate(1.15);
-  }
-  .hero-bg::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background:
-      linear-gradient(to bottom, rgba(7,10,15,0.55) 0%, rgba(7,10,15,0.75) 45%, var(--ink-900) 100%),
-      radial-gradient(ellipse 65% 55% at 50% 45%, transparent 20%, rgba(7,10,15,0.7) 100%);
-  }
-  .hero-content {
-    position: relative;
-    z-index: 1;
-    max-width: 780px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
+  .hero-copy > * { pointer-events: auto; }
+
   .eyebrow {
     display: inline-flex;
     align-items: center;
     gap: 9px;
     padding: 6px 15px 6px 9px;
     border: 1px solid var(--line-strong);
-    background: var(--panel);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    background: rgba(4,7,11,0.55);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border-radius: 999px;
-    font-size: 0.78rem;
-    font-weight: 600;
-    letter-spacing: 0.04em;
+    font-size: 0.76rem;
+    font-weight: 650;
+    letter-spacing: 0.05em;
     text-transform: uppercase;
     color: var(--sky-bright);
-    margin-bottom: 30px;
+    margin-bottom: 26px;
   }
   .eyebrow .dot {
-    width: 7px; height: 7px;
-    border-radius: 50%;
+    width: 7px; height: 7px; border-radius: 50%;
     background: var(--sky);
-    box-shadow: 0 0 0 4px rgba(148,183,245,0.22);
     animation: pulse 2.4s ease-in-out infinite;
   }
   @keyframes pulse {
-    0%,100% { box-shadow: 0 0 0 3px rgba(148,183,245,0.28); }
-    50%     { box-shadow: 0 0 0 7px rgba(148,183,245,0.05); }
+    0%,100% { box-shadow: 0 0 0 3px rgba(148,183,245,0.3); }
+    50%     { box-shadow: 0 0 0 8px rgba(148,183,245,0.03); }
   }
+
   .hero h1 {
-    font-size: clamp(2.6rem, 7.5vw, 5rem);
-    line-height: 1.02;
+    font-size: clamp(2.5rem, 7.2vw, 5.1rem);
+    line-height: 1.0;
     font-weight: 800;
-    letter-spacing: -0.035em;
-    margin-bottom: 22px;
+    letter-spacing: -0.038em;
+    margin-bottom: 20px;
+    text-shadow: 0 4px 40px rgba(4,7,11,0.9);
   }
-  .hero h1 .shine {
-    background: linear-gradient(100deg, var(--silver) 0%, #ffffff 20%, var(--sky) 48%, #ffffff 72%, var(--silver) 100%);
-    background-size: 220% auto;
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    animation: shine 7s linear infinite;
+  .shine {
+    background: linear-gradient(100deg, var(--silver) 0%, #fff 18%, var(--sky) 46%, #fff 70%, var(--silver) 100%);
+    background-size: 230% auto;
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    animation: shine 8s linear infinite;
   }
-  @keyframes shine {
-    to { background-position: 220% center; }
-  }
+  @keyframes shine { to { background-position: 230% center; } }
+
   .hero .lede {
-    font-size: clamp(1.05rem, 2.4vw, 1.3rem);
+    font-size: clamp(1.02rem, 2.2vw, 1.24rem);
     color: var(--muted);
-    max-width: 620px;
-    margin-bottom: 38px;
+    max-width: 580px;
+    margin-bottom: 32px;
+    text-shadow: 0 2px 22px rgba(4,7,11,0.9);
   }
   .hero .lede strong { color: var(--silver); font-weight: 600; }
 
-  .cta-row {
-    display: flex;
-    gap: 13px;
-    flex-wrap: wrap;
-    justify-content: center;
-    margin-bottom: 44px;
-  }
-  .btn {
+  .cta-row { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+
+  .drag-hint {
+    margin-top: 28px;
     display: inline-flex;
     align-items: center;
     gap: 9px;
-    padding: 14px 27px;
-    border-radius: 12px;
-    font-weight: 600;
-    font-size: 0.98rem;
-    border: 1px solid transparent;
-    cursor: pointer;
-    transition: transform .22s cubic-bezier(.2,.8,.2,1), box-shadow .22s, background .22s, border-color .22s;
+    font-size: 0.78rem;
+    color: var(--muted-dim);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
   }
-  .btn svg { width: 17px; height: 17px; }
-  .btn-primary {
-    background: linear-gradient(135deg, #ffffff, var(--sky-bright));
-    color: var(--ink-900);
-    box-shadow: 0 10px 34px -12px rgba(185,210,255,0.75);
-  }
-  .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 18px 44px -12px rgba(185,210,255,0.9);
-  }
-  .btn-ghost {
-    background: var(--panel);
-    border-color: var(--line-strong);
-    color: var(--text);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-  }
-  .btn-ghost:hover {
-    transform: translateY(-2px);
-    background: var(--panel-strong);
-    border-color: rgba(148,183,245,0.5);
+  .drag-hint svg { width: 15px; height: 15px; opacity: 0.75; }
+  #face-hint {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--sky);
+    padding: 2px 8px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: rgba(4,7,11,0.5);
+    text-transform: none;
+    letter-spacing: 0;
   }
 
+  /* spec strip pinned to hero bottom */
+  .hero-foot {
+    position: relative;
+    z-index: 2;
+    padding: 0 24px 26px;
+    display: flex;
+    justify-content: center;
+  }
   .spec-strip {
     display: flex;
-    gap: 0;
     flex-wrap: wrap;
     justify-content: center;
     border: 1px solid var(--line);
-    background: rgba(7,10,15,0.5);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
+    background: rgba(4,7,11,0.62);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     border-radius: 14px;
     overflow: hidden;
   }
   .spec-strip div {
-    padding: 13px 22px;
-    font-size: 0.83rem;
-    color: var(--muted);
+    padding: 12px 20px;
     border-right: 1px solid var(--line);
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    min-width: 118px;
+    display: flex; flex-direction: column; gap: 1px;
+    min-width: 112px;
   }
   .spec-strip div:last-child { border-right: 0; }
   .spec-strip .k {
-    font-size: 0.68rem;
-    text-transform: uppercase;
-    letter-spacing: 0.09em;
-    color: var(--muted-dim);
+    font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted-dim);
   }
-  .spec-strip .v { color: var(--text); font-weight: 600; font-size: 0.92rem; }
+  .spec-strip .v { color: var(--text); font-weight: 650; font-size: 0.9rem; }
+  .spec-strip .v.live { color: var(--sky-bright); }
 
-  .scroll-hint {
-    position: absolute;
-    bottom: 26px; left: 50%;
-    transform: translateX(-50%);
-    z-index: 1;
-    color: var(--muted-dim);
-    font-size: 0.72rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    animation: bob 2.6s ease-in-out infinite;
-  }
-  .scroll-hint span.line {
-    width: 1px; height: 26px;
-    background: linear-gradient(to bottom, var(--muted-dim), transparent);
-  }
-  @keyframes bob {
-    0%,100% { transform: translate(-50%, 0); opacity: .75; }
-    50%     { transform: translate(-50%, 7px); opacity: 1; }
-  }
-
-  /* ============ layout ============ */
-  main { position: relative; z-index: 1; }
-  section {
-    max-width: var(--maxw);
-    margin: 0 auto;
-    padding: 96px 24px;
-  }
-  .section-head { margin-bottom: 44px; max-width: 640px; }
-  .section-head .tag {
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--sky);
-    margin-bottom: 13px;
-    display: block;
-  }
-  .section-head h2 {
-    font-size: clamp(1.75rem, 4vw, 2.5rem);
-    font-weight: 750;
-    letter-spacing: -0.028em;
-    line-height: 1.14;
-    margin-bottom: 14px;
-  }
-  .section-head p { color: var(--muted); font-size: 1.04rem; }
-
-  /* ============ features ============ */
+  /* ================= features ================= */
   .feature-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(258px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(262px, 1fr));
     gap: 16px;
   }
   .feature {
@@ -385,21 +198,15 @@
     border-radius: var(--radius);
     background: linear-gradient(160deg, var(--panel), rgba(255,255,255,0.012));
     overflow: hidden;
-    transition: transform .3s cubic-bezier(.2,.8,.2,1), border-color .3s, background .3s;
+    transition: transform 0.35s var(--ease), border-color 0.35s;
   }
   .feature::before {
     content: '';
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(360px circle at var(--mx, 50%) var(--my, 0%), rgba(148,183,245,0.13), transparent 70%);
-    opacity: 0;
-    transition: opacity .35s;
-    pointer-events: none;
+    position: absolute; inset: 0;
+    background: radial-gradient(340px circle at var(--mx,50%) var(--my,0%), rgba(148,183,245,0.14), transparent 70%);
+    opacity: 0; transition: opacity 0.35s; pointer-events: none;
   }
-  .feature:hover {
-    transform: translateY(-4px);
-    border-color: var(--line-strong);
-  }
+  .feature:hover { transform: translateY(-5px); border-color: var(--line-strong); }
   .feature:hover::before { opacity: 1; }
   .feature .ico {
     width: 42px; height: 42px;
@@ -407,564 +214,466 @@
     border-radius: 11px;
     background: rgba(148,183,245,0.13);
     border: 1px solid rgba(148,183,245,0.24);
-    font-size: 1.25rem;
-    margin-bottom: 17px;
+    font-size: 1.22rem;
+    margin-bottom: 16px;
   }
-  .feature h3 {
-    font-size: 1.06rem;
-    font-weight: 650;
-    letter-spacing: -0.012em;
-    margin-bottom: 8px;
-  }
-  .feature p { color: var(--muted); font-size: 0.93rem; line-height: 1.6; }
+  .feature h3 { font-size: 1.05rem; font-weight: 650; letter-spacing: -0.014em; margin-bottom: 8px; }
+  .feature p { color: var(--muted); font-size: 0.925rem; line-height: 1.6; }
 
-  /* ============ gallery ============ */
-  .gallery {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 18px;
-  }
+  /* ================= gallery ================= */
+  .gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px,1fr)); gap: 18px; }
   .shot {
-    position: relative;
-    border-radius: var(--radius);
-    overflow: hidden;
-    border: 1px solid var(--line);
-    background: var(--ink-800);
-    cursor: zoom-in;
-    box-shadow: var(--shadow);
-    transition: transform .35s cubic-bezier(.2,.8,.2,1), border-color .35s;
+    position: relative; border-radius: var(--radius); overflow: hidden;
+    border: 1px solid var(--line); background: var(--ink-800);
+    cursor: zoom-in; box-shadow: var(--shadow);
+    transition: transform 0.4s var(--ease), border-color 0.4s;
   }
   .shot img {
-    width: 100%;
-    aspect-ratio: 16 / 10;
-    object-fit: cover;
-    transition: transform .55s cubic-bezier(.2,.8,.2,1), filter .35s;
+    width: 100%; aspect-ratio: 16/10; object-fit: cover;
+    transition: transform 0.6s var(--ease);
   }
-  .shot:hover { transform: translateY(-4px); border-color: rgba(148,183,245,0.45); }
-  .shot:hover img { transform: scale(1.045); }
+  .shot:hover { transform: translateY(-5px); border-color: rgba(148,183,245,0.45); }
+  .shot:hover img { transform: scale(1.05); }
   .shot figcaption {
-    position: absolute;
-    left: 0; right: 0; bottom: 0;
-    padding: 34px 18px 15px;
-    font-size: 0.87rem;
-    color: var(--silver);
-    background: linear-gradient(to top, rgba(7,10,15,0.92), transparent);
+    position: absolute; left: 0; right: 0; bottom: 0;
+    padding: 36px 18px 15px; font-size: 0.87rem; color: var(--silver);
+    background: linear-gradient(to top, rgba(4,7,11,0.94), transparent);
   }
-  .shot .zoom-badge {
-    position: absolute;
-    top: 12px; right: 12px;
-    width: 30px; height: 30px;
-    display: grid; place-items: center;
-    border-radius: 8px;
-    background: rgba(7,10,15,0.68);
+  .shot .zoom {
+    position: absolute; top: 12px; right: 12px;
+    width: 30px; height: 30px; display: grid; place-items: center;
+    border-radius: 8px; background: rgba(4,7,11,0.7);
     border: 1px solid var(--line-strong);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    font-size: 0.8rem;
-    opacity: 0;
-    transition: opacity .3s;
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    font-size: 0.78rem; opacity: 0; transition: opacity 0.3s;
   }
-  .shot:hover .zoom-badge { opacity: 1; }
+  .shot:hover .zoom { opacity: 1; }
 
-  /* lightbox */
   .lightbox {
-    position: fixed;
-    inset: 0;
-    z-index: 200;
-    display: none;
-    place-items: center;
-    padding: 28px;
-    background: rgba(3,5,8,0.93);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    cursor: zoom-out;
+    position: fixed; inset: 0; z-index: 200; display: none; place-items: center;
+    padding: 28px; background: rgba(2,4,7,0.94);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); cursor: zoom-out;
   }
-  .lightbox.open { display: grid; animation: fade .25s ease; }
+  .lightbox.open { display: grid; animation: fade 0.25s ease; }
   @keyframes fade { from { opacity: 0 } to { opacity: 1 } }
   .lightbox img {
-    max-width: min(1200px, 96vw);
-    max-height: 88vh;
-    border-radius: 12px;
-    border: 1px solid var(--line-strong);
-    box-shadow: 0 40px 100px -30px #000;
+    max-width: min(1240px, 96vw); max-height: 88vh;
+    border-radius: 12px; border: 1px solid var(--line-strong);
+    box-shadow: 0 40px 110px -30px #000;
   }
-  .lightbox .close {
-    position: absolute;
-    top: 20px; right: 24px;
-    font-size: 1.7rem;
-    color: var(--muted);
-    line-height: 1;
-    cursor: pointer;
+  .lightbox .x {
+    position: absolute; top: 20px; right: 26px;
+    font-size: 1.7rem; color: var(--muted); cursor: pointer; line-height: 1;
   }
-  .lightbox .close:hover { color: #fff; }
+  .lightbox .x:hover { color: #fff; }
 
-  /* ============ warning ============ */
+  /* ================= downloads ================= */
+  .dl-hero {
+    border: 1px solid rgba(148,183,245,0.28);
+    border-radius: var(--radius-lg);
+    background:
+      linear-gradient(150deg, rgba(148,183,245,0.11), rgba(148,183,245,0.02) 55%, transparent),
+      rgba(255,255,255,0.014);
+    padding: 30px 32px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 26px; flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+  .dl-hero .meta { display: flex; flex-direction: column; gap: 6px; min-width: 240px; }
+  .dl-hero .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .dl-hero .ver {
+    font-family: var(--mono); font-size: 1.6rem; font-weight: 500;
+    color: var(--text); letter-spacing: -0.02em;
+  }
+  .pill {
+    font-size: 0.66rem; font-weight: 750; letter-spacing: 0.09em; text-transform: uppercase;
+    padding: 3px 9px; border-radius: 999px;
+  }
+  .pill.latest { background: rgba(134,224,168,0.16); color: var(--green); border: 1px solid rgba(134,224,168,0.32); }
+  .pill.pre    { background: rgba(240,182,74,0.14); color: var(--amber-soft); border: 1px solid rgba(240,182,74,0.3); }
+  .dl-hero .sub { color: var(--muted); font-size: 0.9rem; }
+  .dl-hero .acts { display: flex; gap: 10px; flex-wrap: wrap; }
+
+  .ver-list { display: grid; gap: 10px; }
+  .ver-row {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px; flex-wrap: wrap;
+    padding: 15px 20px;
+    border: 1px solid var(--line); border-radius: 13px;
+    background: var(--panel);
+    transition: border-color 0.3s, background 0.3s, transform 0.3s var(--ease);
+  }
+  .ver-row:hover { border-color: var(--line-strong); background: var(--panel-strong); transform: translateX(3px); }
+  .ver-row .l { display: flex; align-items: center; gap: 13px; flex-wrap: wrap; }
+  .ver-row .tag-v { font-family: var(--mono); font-size: 0.95rem; color: var(--sky-bright); }
+  .ver-row .date { color: var(--muted-dim); font-size: 0.84rem; }
+  .ver-row .r { display: flex; align-items: center; gap: 12px; }
+  .ver-row a.get { color: var(--muted); font-size: 0.86rem; font-weight: 600; transition: color 0.2s; }
+  .ver-row a.get:hover { color: var(--sky-bright); }
+  .ver-empty { color: var(--muted-dim); font-size: 0.9rem; padding: 18px 20px; border: 1px dashed var(--line); border-radius: 13px; }
+
+  .hub-note {
+    margin-top: 20px; padding: 18px 22px;
+    border: 1px dashed var(--line-strong); border-radius: 13px;
+    background: rgba(148,183,245,0.045);
+    color: var(--muted); font-size: 0.92rem;
+  }
+  .hub-note strong { color: var(--sky-bright); }
+
+  /* ================= warning ================= */
   .warn {
     position: relative;
     border: 1px solid rgba(240,182,74,0.3);
     border-radius: var(--radius);
-    background:
-      linear-gradient(150deg, rgba(240,182,74,0.11), rgba(240,182,74,0.03) 60%, transparent),
-      rgba(255,255,255,0.012);
+    background: linear-gradient(150deg, rgba(240,182,74,0.11), rgba(240,182,74,0.03) 60%, transparent), rgba(255,255,255,0.012);
     padding: 32px 34px;
-    display: flex;
-    gap: 22px;
-    align-items: flex-start;
-    overflow: hidden;
+    display: flex; gap: 22px; align-items: flex-start; overflow: hidden;
   }
   .warn::before {
-    content: '';
-    position: absolute;
-    left: 0; top: 0; bottom: 0;
-    width: 3px;
-    background: linear-gradient(to bottom, var(--amber), rgba(240,182,74,0.15));
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+    background: linear-gradient(to bottom, var(--amber), rgba(240,182,74,0.12));
   }
   .warn .bang {
-    flex-shrink: 0;
-    width: 46px; height: 46px;
-    display: grid; place-items: center;
-    border-radius: 12px;
-    background: rgba(240,182,74,0.16);
-    border: 1px solid rgba(240,182,74,0.32);
-    font-size: 1.4rem;
+    flex-shrink: 0; width: 46px; height: 46px;
+    display: grid; place-items: center; border-radius: 12px;
+    background: rgba(240,182,74,0.16); border: 1px solid rgba(240,182,74,0.32);
+    font-size: 1.35rem;
   }
-  .warn h3 {
-    font-size: 1.16rem;
-    color: var(--amber-soft);
-    font-weight: 700;
-    letter-spacing: -0.015em;
-    margin-bottom: 10px;
-  }
-  .warn p { color: #dcc9a4; font-size: 0.96rem; margin-bottom: 11px; }
+  .warn h3 { font-size: 1.15rem; color: var(--amber-soft); font-weight: 700; letter-spacing: -0.016em; margin-bottom: 10px; }
+  .warn p { color: #dcc9a4; font-size: 0.955rem; margin-bottom: 11px; }
   .warn p:last-child { margin-bottom: 0; }
   .warn code {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.87em;
-    background: rgba(240,182,74,0.14);
-    color: var(--amber-soft);
-    padding: 2px 7px;
-    border-radius: 5px;
+    font-family: var(--mono); font-size: 0.86em;
+    background: rgba(240,182,74,0.14); color: var(--amber-soft);
+    padding: 2px 7px; border-radius: 5px;
   }
-  @media (max-width: 620px) {
-    .warn { flex-direction: column; gap: 16px; padding: 26px 22px; }
-  }
+  @media (max-width: 620px) { .warn { flex-direction: column; gap: 16px; padding: 26px 22px; } }
 
-  /* ============ steps ============ */
-  .steps { display: grid; gap: 12px; counter-reset: s; }
-  .step {
-    display: flex;
-    gap: 18px;
-    align-items: flex-start;
-    padding: 20px 24px;
-    border: 1px solid var(--line);
-    border-radius: 13px;
-    background: var(--panel);
-    transition: border-color .3s, transform .3s, background .3s;
-  }
-  .step:hover { border-color: var(--line-strong); background: var(--panel-strong); transform: translateX(3px); }
-  .step .n {
-    counter-increment: s;
-    flex-shrink: 0;
-    width: 30px; height: 30px;
-    display: grid; place-items: center;
-    border-radius: 9px;
-    background: rgba(148,183,245,0.14);
-    border: 1px solid rgba(148,183,245,0.26);
-    color: var(--sky-bright);
-    font-weight: 700;
-    font-size: 0.85rem;
-    font-family: 'JetBrains Mono', monospace;
-  }
-  .step .n::before { content: counter(s); }
-  .step .body { padding-top: 2px; }
-  .step .body strong { display: block; font-weight: 600; margin-bottom: 3px; font-size: 0.99rem; }
-  .step .body span { color: var(--muted); font-size: 0.91rem; }
-  .step code, .inline-code {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.86em;
-    background: rgba(255,255,255,0.07);
-    color: var(--sky-bright);
-    padding: 2px 6px;
-    border-radius: 5px;
-  }
-
-  /* ============ config ============ */
-  .cfg-wrap {
-    display: grid;
-    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-    gap: 18px;
-    align-items: start;
-  }
-  @media (max-width: 900px) { .cfg-wrap { grid-template-columns: 1fr; } }
+  /* ================= config ================= */
+  .cfg-wrap { display: grid; grid-template-columns: minmax(0,0.88fr) minmax(0,1.12fr); gap: 18px; align-items: start; }
+  @media (max-width: 920px) { .cfg-wrap { grid-template-columns: 1fr; } }
 
   .code-card {
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    background: rgba(3,5,8,0.72);
-    overflow: hidden;
-    position: sticky;
-    top: 92px;
+    border: 1px solid var(--line); border-radius: var(--radius);
+    background: rgba(2,4,7,0.75); overflow: hidden;
+    position: sticky; top: calc(var(--nav-h) + 20px);
   }
-  @media (max-width: 900px) { .code-card { position: static; } }
+  @media (max-width: 920px) { .code-card { position: static; } }
   .code-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 11px 15px;
-    border-bottom: 1px solid var(--line);
-    background: rgba(255,255,255,0.025);
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 11px 15px; border-bottom: 1px solid var(--line);
+    background: rgba(255,255,255,0.026);
   }
   .code-head .file {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.8rem;
-    color: var(--muted);
+    font-family: var(--mono); font-size: 0.79rem; color: var(--muted);
     display: flex; align-items: center; gap: 8px;
   }
   .code-head .file::before {
-    content: '';
-    width: 8px; height: 8px; border-radius: 50%;
-    background: var(--sky);
-    box-shadow: 0 0 8px var(--sky);
+    content: ''; width: 8px; height: 8px; border-radius: 50%;
+    background: var(--sky); box-shadow: 0 0 8px var(--sky);
   }
   .copy-btn {
-    font-family: inherit;
-    font-size: 0.76rem;
-    font-weight: 600;
-    color: var(--muted);
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 7px;
-    padding: 5px 11px;
-    cursor: pointer;
-    transition: color .2s, border-color .2s, background .2s;
+    font-family: inherit; font-size: 0.75rem; font-weight: 650;
+    color: var(--muted); background: var(--panel);
+    border: 1px solid var(--line); border-radius: 7px;
+    padding: 5px 11px; cursor: pointer;
+    transition: color 0.2s, border-color 0.2s, background 0.2s;
   }
   .copy-btn:hover { color: var(--text); border-color: var(--line-strong); background: var(--panel-strong); }
-  .copy-btn.done { color: #86e0a8; border-color: rgba(134,224,168,0.4); }
-  pre {
-    padding: 19px 20px;
-    overflow-x: auto;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.845rem;
-    line-height: 1.85;
-  }
+  .copy-btn.done { color: var(--green); border-color: rgba(134,224,168,0.4); }
+  pre { padding: 19px 20px; overflow-x: auto; font-family: var(--mono); font-size: 0.84rem; line-height: 1.85; }
   pre .k { color: var(--sky-bright); }
-  pre .n { color: #f0b64a; }
+  pre .n { color: var(--amber); }
   pre .p { color: var(--muted-dim); }
 
   .cfg-list { display: grid; gap: 10px; }
   .cfg-item {
-    border: 1px solid var(--line);
-    border-radius: 13px;
-    background: var(--panel);
-    padding: 17px 20px;
-    transition: border-color .3s, background .3s;
+    border: 1px solid var(--line); border-radius: 13px;
+    background: var(--panel); padding: 17px 20px;
+    transition: border-color 0.3s, background 0.3s;
   }
   .cfg-item:hover { border-color: var(--line-strong); background: var(--panel-strong); }
   .cfg-item .top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin-bottom: 7px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; flex-wrap: wrap; margin-bottom: 7px;
   }
-  .cfg-item .key {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.88rem;
-    font-weight: 500;
-    color: var(--sky-bright);
-  }
-  .cfg-item .impact {
-    font-size: 0.66rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    padding: 3px 9px;
-    border-radius: 999px;
-    white-space: nowrap;
+  .cfg-item .key { font-family: var(--mono); font-size: 0.875rem; color: var(--sky-bright); }
+  .impact {
+    font-size: 0.645rem; font-weight: 750; letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 3px 9px; border-radius: 999px; white-space: nowrap;
   }
   .impact.high { background: rgba(240,120,90,0.16); color: #ffb49c; border: 1px solid rgba(240,120,90,0.3); }
   .impact.mid  { background: rgba(240,182,74,0.14); color: var(--amber-soft); border: 1px solid rgba(240,182,74,0.28); }
   .impact.low  { background: rgba(134,224,168,0.13); color: #9fe7bb; border: 1px solid rgba(134,224,168,0.26); }
-  .cfg-item p { color: var(--muted); font-size: 0.91rem; line-height: 1.58; }
+  .cfg-item p { color: var(--muted); font-size: 0.905rem; line-height: 1.58; }
   .cfg-item .hint {
-    margin-top: 8px;
-    font-size: 0.85rem;
-    color: var(--muted-dim);
-    padding-left: 11px;
-    border-left: 2px solid var(--line-strong);
+    margin-top: 8px; font-size: 0.845rem; color: var(--muted-dim);
+    padding-left: 11px; border-left: 2px solid var(--line-strong);
   }
-
   .tip {
-    margin-top: 22px;
-    padding: 18px 22px;
-    border: 1px dashed var(--line-strong);
-    border-radius: 13px;
-    background: rgba(148,183,245,0.05);
-    color: var(--muted);
-    font-size: 0.94rem;
+    margin-top: 22px; padding: 18px 22px;
+    border: 1px dashed var(--line-strong); border-radius: 13px;
+    background: rgba(148,183,245,0.05); color: var(--muted); font-size: 0.93rem;
   }
   .tip strong { color: var(--sky-bright); }
 
-  /* ============ compat ============ */
-  .compat { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
-  .compat-card {
-    padding: 24px 25px;
-    border-radius: var(--radius);
-    border: 1px solid var(--line);
+  /* ================= steps ================= */
+  .steps { display: grid; gap: 11px; counter-reset: s; }
+  .step {
+    display: flex; gap: 17px; align-items: flex-start;
+    padding: 19px 23px; border: 1px solid var(--line); border-radius: 13px;
     background: var(--panel);
+    transition: border-color 0.3s, transform 0.3s var(--ease), background 0.3s;
   }
-  .compat-card.yes { border-color: rgba(134,224,168,0.28); background: linear-gradient(150deg, rgba(134,224,168,0.07), transparent 70%); }
-  .compat-card.no  { border-color: rgba(240,120,90,0.28);  background: linear-gradient(150deg, rgba(240,120,90,0.07), transparent 70%); }
-  .compat-card .hdr {
-    display: flex; align-items: center; gap: 11px;
-    font-weight: 700; font-size: 1.04rem;
-    margin-bottom: 10px;
-    letter-spacing: -0.01em;
+  .step:hover { border-color: var(--line-strong); background: var(--panel-strong); transform: translateX(3px); }
+  .step .n {
+    counter-increment: s; flex-shrink: 0;
+    width: 29px; height: 29px; display: grid; place-items: center;
+    border-radius: 9px; background: rgba(148,183,245,0.14);
+    border: 1px solid rgba(148,183,245,0.26);
+    color: var(--sky-bright); font-weight: 700; font-size: 0.83rem; font-family: var(--mono);
   }
-  .compat-card .mark {
-    width: 26px; height: 26px;
-    display: grid; place-items: center;
-    border-radius: 7px;
-    font-size: 0.85rem;
-    font-weight: 800;
+  .step .n::before { content: counter(s); }
+  .step .body strong { display: block; font-weight: 620; margin-bottom: 3px; font-size: 0.98rem; }
+  .step .body span { color: var(--muted); font-size: 0.9rem; }
+  .step code {
+    font-family: var(--mono); font-size: 0.85em;
+    background: rgba(255,255,255,0.07); color: var(--sky-bright);
+    padding: 2px 6px; border-radius: 5px;
   }
-  .compat-card.yes .mark { background: rgba(134,224,168,0.18); color: #9fe7bb; }
-  .compat-card.no  .mark { background: rgba(240,120,90,0.18);  color: #ffb49c; }
-  .compat-card p { color: var(--muted); font-size: 0.92rem; }
 
-  /* ============ credits + footer ============ */
-  .credits {
-    display: grid;
-    gap: 12px;
-  }
-  .credit {
-    display: flex;
-    gap: 14px;
-    align-items: flex-start;
-    padding: 18px 22px;
-    border: 1px solid var(--line);
-    border-radius: 13px;
-    background: var(--panel);
-    font-size: 0.94rem;
-    color: var(--muted);
-  }
-  .credit .glyph { color: var(--sky); flex-shrink: 0; }
-  .credit a { color: var(--sky-bright); border-bottom: 1px solid rgba(185,210,255,0.35); }
-  .credit a:hover { border-bottom-color: var(--sky-bright); }
-  .credit strong { color: var(--text); }
+  /* ================= compat ================= */
+  .compat { display: grid; grid-template-columns: repeat(auto-fit, minmax(285px,1fr)); gap: 16px; }
+  .cc { padding: 24px 25px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--panel); }
+  .cc.yes { border-color: rgba(134,224,168,0.28); background: linear-gradient(150deg, rgba(134,224,168,0.07), transparent 70%); }
+  .cc.no  { border-color: rgba(240,120,90,0.28);  background: linear-gradient(150deg, rgba(240,120,90,0.07), transparent 70%); }
+  .cc .hdr { display: flex; align-items: center; gap: 11px; font-weight: 700; font-size: 1.03rem; margin-bottom: 10px; letter-spacing: -0.012em; }
+  .cc .mark { width: 26px; height: 26px; display: grid; place-items: center; border-radius: 7px; font-size: 0.84rem; font-weight: 800; }
+  .cc.yes .mark { background: rgba(134,224,168,0.18); color: var(--green); }
+  .cc.no .mark  { background: rgba(240,120,90,0.18);  color: #ffb49c; }
+  .cc p { color: var(--muted); font-size: 0.91rem; }
 
-  .cta-band {
-    max-width: var(--maxw);
-    margin: 30px auto 0;
-    padding: 0 24px;
-  }
+  /* ================= cta band ================= */
+  .cta-band { max-width: var(--maxw); margin: 26px auto 0; padding: 0 24px; }
   .cta-band-inner {
-    position: relative;
-    text-align: center;
-    padding: 60px 30px;
-    border: 1px solid var(--line-strong);
-    border-radius: 22px;
-    overflow: hidden;
-    background: rgba(11,16,23,0.6);
+    position: relative; text-align: center; padding: 62px 30px;
+    border: 1px solid var(--line-strong); border-radius: var(--radius-lg);
+    overflow: hidden; background: rgba(11,16,23,0.62);
   }
   .cta-band-inner .bg {
     position: absolute; inset: 0;
     background: url('assets/screenshot-2.jpg') center / cover no-repeat;
-    opacity: 0.20;
-    filter: saturate(1.1);
+    opacity: 0.19;
   }
   .cta-band-inner .bg::after {
     content: ''; position: absolute; inset: 0;
-    background: radial-gradient(ellipse 70% 80% at 50% 50%, rgba(7,10,15,0.6), rgba(7,10,15,0.92));
+    background: radial-gradient(ellipse 72% 82% at 50% 50%, rgba(4,7,11,0.58), rgba(4,7,11,0.94));
   }
   .cta-band-inner .fg { position: relative; z-index: 1; }
-  .cta-band-inner h2 {
-    font-size: clamp(1.6rem, 4vw, 2.3rem);
-    font-weight: 780;
-    letter-spacing: -0.028em;
-    margin-bottom: 12px;
-  }
-  .cta-band-inner p { color: var(--muted); margin-bottom: 28px; }
+  .cta-band-inner h2 { font-size: clamp(1.6rem,4vw,2.35rem); font-weight: 780; letter-spacing: -0.03em; margin-bottom: 12px; }
+  .cta-band-inner p { color: var(--muted); margin-bottom: 26px; }
 
-  footer {
-    border-top: 1px solid var(--line);
-    margin-top: 90px;
-    padding: 34px 24px;
+  /* credits */
+  .credits { display: grid; gap: 11px; }
+  .credit {
+    display: flex; gap: 14px; align-items: flex-start;
+    padding: 18px 22px; border: 1px solid var(--line); border-radius: 13px;
+    background: var(--panel); font-size: 0.93rem; color: var(--muted);
   }
-  .foot-inner {
-    max-width: var(--maxw);
-    margin: 0 auto;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    flex-wrap: wrap;
-    color: var(--muted-dim);
-    font-size: 0.87rem;
-  }
-  .foot-inner a { color: var(--muted); }
-  .foot-inner a:hover { color: var(--text); }
-  .foot-brand { display: flex; align-items: center; gap: 10px; }
-  .foot-brand img { width: 20px; height: 20px; image-rendering: pixelated; opacity: .85; }
-
-  /* ============ reveal ============ */
-  .reveal {
-    opacity: 0;
-    transform: translateY(22px);
-    transition: opacity .7s cubic-bezier(.2,.8,.2,1), transform .7s cubic-bezier(.2,.8,.2,1);
-  }
-  .reveal.in { opacity: 1; transform: none; }
-
-  @media (prefers-reduced-motion: reduce) {
-    * { animation: none !important; transition: none !important; }
-    .reveal { opacity: 1; transform: none; }
-    html { scroll-behavior: auto; }
-  }
+  .credit .g { color: var(--sky); flex-shrink: 0; }
+  .credit a { color: var(--sky-bright); border-bottom: 1px solid rgba(185,210,255,0.35); }
+  .credit a:hover { border-bottom-color: var(--sky-bright); }
+  .credit strong { color: var(--text); }
 </style>
 </head>
 <body>
 
 <div class="ambient"></div>
+<div class="progress" id="progress"></div>
 
-<nav id="nav">
+<nav class="site-nav" id="nav">
   <div class="nav-inner">
     <a href="#top" class="brand">
-      <img src="assets/mirror-icon.png" alt="">
-      Rageforge <span style="color:var(--muted-dim);font-weight:500">/</span> Mirror Cube
+      <img src="assets/logo.svg" alt="">
+      Rageforge <span class="sep">/</span> <span class="sub">Mirror Cube</span>
     </a>
     <div class="nav-links">
       <a href="#features">Features</a>
       <a href="#gallery">Gallery</a>
-      <a href="#install">Install</a>
+      <a href="#downloads">Versions</a>
       <a href="#performance">Performance</a>
-      <a class="nav-cta" href="https://github.com/TheRealDevCH/Repotome_Rageforge_initials/releases">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2A10 10 0 002 12c0 4.42 2.87 8.17 6.84 9.5.5.09.66-.21.66-.47v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.08 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.56-1.11-4.56-4.95 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02a9.6 9.6 0 015 0c1.91-1.29 2.75-1.02 2.75-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.85-2.34 4.7-4.57 4.95.36.31.68.92.68 1.85v2.74c0 .27.16.57.67.47A10 10 0 0022 12A10 10 0 0012 2z"/></svg>
-        Download
+      <a href="docs.html">Docs</a>
+      <a class="nav-cta" href="https://github.com/TheRealDevCH/Rageforge-Spiegelwuerfel/releases/latest">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        Latest
       </a>
     </div>
   </div>
 </nav>
 
 <header class="hero" id="top">
-  <div class="hero-bg"></div>
-  <div class="hero-content">
+  <div class="hero-photo"></div>
+  <div class="stage" id="stage"><canvas id="cube-canvas"></canvas></div>
+
+  <div class="hero-copy">
     <span class="eyebrow"><span class="dot"></span>Fabric · Minecraft 26.2</span>
     <h1>A real mirror<br><span class="shine">for Minecraft.</span></h1>
     <p class="lede">
-      The Rageforge Mirror Cube reflects the world on <strong>all six faces</strong> in real time —
+      A borderless cube that reflects the world on <strong>all six faces</strong> in real time —
       terrain, mobs, sky, other mirrors. Everything, <strong>except you</strong>.
     </p>
     <div class="cta-row">
-      <a class="btn btn-primary" href="https://github.com/TheRealDevCH/Repotome_Rageforge_initials/releases">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-        Download v0.1.0
+      <a class="btn btn-primary" href="https://github.com/TheRealDevCH/Rageforge-Spiegelwuerfel/releases/latest">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        Download latest
       </a>
-      <a class="btn btn-ghost" href="#gallery">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.6"/><path d="M21 15l-5-5L5 21"/></svg>
-        See it in action
+      <a class="btn btn-ghost" href="docs.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+        How it works
       </a>
     </div>
+    <div class="drag-hint">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 12h8M12 8v8"/><circle cx="12" cy="12" r="9"/></svg>
+      Drag the cube
+      <span id="face-hint">Front face</span>
+    </div>
+  </div>
+
+  <div class="hero-foot">
     <div class="spec-strip">
       <div><span class="k">Minecraft</span><span class="v">26.2</span></div>
       <div><span class="k">Loader</span><span class="v">Fabric 0.19+</span></div>
-      <div><span class="k">Requires</span><span class="v">Fabric API</span></div>
-      <div><span class="k">License</span><span class="v">MIT-based</span></div>
+      <div><span class="k">Java</span><span class="v">25+</span></div>
+      <div><span class="k">Latest</span><span class="v live" id="spec-latest">…</span></div>
       <div><span class="k">Price</span><span class="v">Free</span></div>
     </div>
   </div>
-  <div class="scroll-hint"><span>Scroll</span><span class="line"></span></div>
 </header>
 
 <main>
 
-  <section id="features">
+  <section class="block" id="features">
     <div class="section-head reveal">
       <span class="tag">What it does</span>
-      <h2>Six reflective faces, one block.</h2>
-      <p>Not a texture trick. The mod renders the scene again from the mirror's point of view, so reflections move, breathe and stack exactly like the real thing.</p>
+      <h2>Six reflective faces, no frame.</h2>
+      <p>Not a texture trick. The mod renders the scene a second time from the mirror's point of view, so reflections move, parallax and stack exactly like the real thing.</p>
     </div>
     <div class="feature-grid">
       <div class="feature reveal">
         <div class="ico">🧊</div>
         <h3>Full cube reflection</h3>
-        <p>Every one of the six sides mirrors independently. Walk around it and the reflection follows you from every angle.</p>
+        <p>All six sides mirror independently. Walk around it and the reflection follows you from every angle — no fixed front.</p>
       </div>
       <div class="feature reveal">
         <div class="ico">👤</div>
         <h3>You stay invisible</h3>
-        <p>The world, mobs and blocks show up in the reflection — your own player model never does. A mirror that refuses to show you.</p>
+        <p>World, mobs and blocks appear in the reflection; your own player model never does. A mirror that refuses to show you.</p>
       </div>
       <div class="feature reveal">
         <div class="ico">♾️</div>
-        <h3>Infinite mirror effect</h3>
-        <p>Face two cubes at each other and the reflection recurses into itself, as deep as your <span class="inline-code">recursionDepth</span> allows.</p>
+        <h3>Recursive mirrors</h3>
+        <p>Face two cubes at each other and the reflection re-enters itself, as deep as <span class="inline-code">recursionDepth</span> allows.</p>
       </div>
       <div class="feature reveal">
         <div class="ico">🎛️</div>
         <h3>Tunable to your rig</h3>
-        <p>Seven values in one JSON file let you trade visual depth for framerate — from potato-safe to showcase quality.</p>
+        <p>Seven values in one JSON file trade visual depth against framerate — from potato-safe to showcase quality.</p>
       </div>
       <div class="feature reveal">
         <div class="ico">🧱</div>
         <h3>Classic wall mirror too</h3>
-        <p>Besides the cube you also get the original flat, wall-mounted mirror block for interiors and builds.</p>
+        <p>Besides the cube you get the original flat, horizontally-facing mirror block for interiors and builds.</p>
       </div>
       <div class="feature reveal">
         <div class="ico">⚡</div>
         <h3>Sodium compatible</h3>
-        <p>The reflection pass hooks into Sodium's terrain renderer and restores it cleanly afterwards.</p>
+        <p>During a reflection pass the mod points Sodium's terrain projection at the mirror's oblique frustum, then restores it.</p>
       </div>
     </div>
   </section>
 
-  <section id="gallery">
+  <section class="block" id="gallery">
     <div class="section-head reveal">
       <span class="tag">Gallery</span>
       <h2>In-game, unedited.</h2>
-      <p>Screenshots straight from Minecraft 26.2 with the Mirror Cube placed in the world.</p>
+      <p>Screenshots straight out of Minecraft 26.2 with the Mirror Cube placed in the world.</p>
     </div>
     <div class="gallery">
-      <figure class="shot reveal" data-full="assets/screenshot-1.jpg">
-        <span class="zoom-badge">⤢</span>
-        <img src="assets/screenshot-1.jpg" alt="Mirror Cube reflecting the landscape and sky in Minecraft" loading="lazy">
+      <figure class="shot reveal-scale" data-full="assets/screenshot-1.jpg">
+        <span class="zoom">⤢</span>
+        <img src="assets/screenshot-1.jpg" alt="Mirror Cube reflecting terrain and sky in Minecraft" loading="lazy">
         <figcaption>The cube picking up terrain, sky and light from every side.</figcaption>
       </figure>
-      <figure class="shot reveal" data-full="assets/screenshot-2.jpg">
-        <span class="zoom-badge">⤢</span>
+      <figure class="shot reveal-scale" data-full="assets/screenshot-2.jpg">
+        <span class="zoom">⤢</span>
         <img src="assets/screenshot-2.jpg" alt="Mirror Cube reflection detail in Minecraft" loading="lazy">
         <figcaption>Reflections update live as you move around the block.</figcaption>
       </figure>
     </div>
   </section>
 
-  <section id="performance">
+  <section class="block" id="downloads">
+    <div class="section-head reveal">
+      <span class="tag">Downloads</span>
+      <h2>Every version, one place.</h2>
+      <p>All builds live in the release hub. This list is pulled live from GitHub, so the newest version shows up here the moment it is published.</p>
+    </div>
+
+    <div class="dl-hero reveal" id="dl-hero">
+      <div class="meta">
+        <div class="row">
+          <span class="ver" id="dl-ver">Loading…</span>
+          <span class="pill latest" id="dl-pill">Latest</span>
+        </div>
+        <span class="sub" id="dl-sub">Fetching release data from GitHub…</span>
+      </div>
+      <div class="acts">
+        <a class="btn btn-primary btn-sm" id="dl-main" href="https://github.com/TheRealDevCH/Rageforge-Spiegelwuerfel/releases/latest">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+          Download
+        </a>
+        <a class="btn btn-ghost btn-sm" id="dl-notes" href="https://github.com/TheRealDevCH/Rageforge-Spiegelwuerfel/releases">Release notes</a>
+      </div>
+    </div>
+
+    <div class="ver-list" id="ver-list">
+      <div class="ver-empty">Loading version history…</div>
+    </div>
+
+    <div class="hub-note reveal">
+      <strong>How new versions work:</strong> every build is published as a GitHub release in the
+      <a href="https://github.com/TheRealDevCH/Rageforge-Spiegelwuerfel" style="color:var(--sky-bright)">Rageforge-Spiegelwuerfel</a>
+      hub. The <span class="inline-code">/releases/latest</span> link always resolves to the newest one, and this page reads the
+      release API at load time — so publishing a release is the only step needed to make it appear here.
+    </div>
+  </section>
+
+  <section class="block" id="performance">
     <div class="warn reveal">
       <div class="bang">⚠</div>
       <div>
         <h3>Read this first: the mod is performance-heavy.</h3>
         <p>
           Real reflections mean the game re-renders parts of the scene for <em>every mirror face on screen</em>,
-          on top of everything it already draws. Depending on your hardware and settings this can noticeably
-          cut your FPS — especially with several cubes visible at once or a high recursion depth.
+          on top of everything it already draws. Depending on hardware and settings this can noticeably cut your
+          FPS — especially with several cubes visible at once or a high recursion depth.
         </p>
         <p>
-          The good news: you're fully in control. Every performance-relevant value lives in
+          The good news: you are fully in control. Every performance-relevant value lives in
           <code>config/mirror.json</code>. Turn them down for smooth gameplay on a weaker PC,
           or push them up if your rig can take deeper, sharper reflections.
         </p>
       </div>
     </div>
 
-    <div class="section-head reveal" style="margin-top:64px">
+    <div class="section-head reveal" style="margin-top:66px">
       <span class="tag">Configuration</span>
-      <h2>Seven dials in <span style="font-family:'JetBrains Mono',monospace;font-size:0.72em;color:var(--sky-bright)">config/mirror.json</span></h2>
+      <h2>Seven dials in <span class="mono-accent">config/mirror.json</span></h2>
       <p>Lower values mean better performance. Higher values mean richer reflections and more GPU/CPU load.</p>
     </div>
 
     <div class="cfg-wrap">
-      <div class="code-card reveal">
+      <div class="code-card reveal-l">
         <div class="code-head">
           <span class="file">config/mirror.json</span>
           <button class="copy-btn" id="copyBtn">Copy</button>
@@ -1023,10 +732,11 @@
       <strong>Quick tuning recipe:</strong> if the mod feels heavy, cut <span class="inline-code">resolutionScale</span> to
       <span class="inline-code">0.65</span> and <span class="inline-code">recursionDepth</span> to <span class="inline-code">2</span> first.
       That combination usually recovers the most frames for the smallest visual trade-off.
+      Full reasoning in the <a href="docs.html#performance-model" style="color:var(--sky-bright)">performance model</a>.
     </div>
   </section>
 
-  <section id="install">
+  <section class="block" id="install">
     <div class="section-head reveal">
       <span class="tag">Setup</span>
       <h2>Installed in five steps.</h2>
@@ -1035,7 +745,7 @@
     <div class="steps">
       <div class="step reveal">
         <span class="n"></span>
-        <div class="body"><strong>Install Fabric Loader 0.19+</strong><span>For Minecraft Java Edition 26.2.</span></div>
+        <div class="body"><strong>Install Fabric Loader 0.19+</strong><span>For Minecraft Java Edition 26.2 on Java 25+.</span></div>
       </div>
       <div class="step reveal">
         <span class="n"></span>
@@ -1043,7 +753,7 @@
       </div>
       <div class="step reveal">
         <span class="n"></span>
-        <div class="body"><strong>Copy both mod jars</strong><span>Put <code>mirror-0.3.0-rageforge+26.2.jar</code> and <code>rageforge-0.1.0+26.2.jar</code> into <code>mods</code>.</span></div>
+        <div class="body"><strong>Copy both mod jars</strong><span>Put <code>mirror-…jar</code> and <code>rageforge-…jar</code> into <code>mods</code>. Both are required.</span></div>
       </div>
       <div class="step reveal">
         <span class="n"></span>
@@ -1056,59 +766,56 @@
     </div>
   </section>
 
-  <section id="compat">
+  <section class="block" id="compat">
     <div class="section-head reveal">
       <span class="tag">Compatibility</span>
       <h2>Works with Sodium. Not with Iris.</h2>
     </div>
     <div class="compat">
-      <div class="compat-card yes reveal">
+      <div class="cc yes reveal">
         <div class="hdr"><span class="mark">✓</span> Sodium</div>
-        <p>Supported. During a reflection pass the mod temporarily redirects Sodium's terrain rendering into the mirror's view, then restores it.</p>
+        <p>Supported. During a reflection pass the mod points Sodium's terrain projection at the mirror's oblique projection, so Sodium draws the reflected view instead of the scene behind the mirror — then restores it.</p>
       </div>
-      <div class="compat-card no reveal">
+      <div class="cc no reveal">
         <div class="hdr"><span class="mark">✕</span> Iris / Shaders</div>
-        <p>Not compatible. Iris replaces the render pipeline that the reflection pass depends on, so mirrors cannot draw their view.</p>
+        <p>Declared as <span class="inline-code">breaks</span> in the mod metadata. Iris replaces the render pipeline that the reflection pass re-enters, so mirrors cannot draw their view.</p>
       </div>
     </div>
   </section>
 
-  <section id="credits">
+  <section class="block" id="credits">
     <div class="section-head reveal">
       <span class="tag">Credits</span>
       <h2>Standing on good work.</h2>
     </div>
     <div class="credits">
       <div class="credit reveal">
-        <span class="glyph">◆</span>
+        <span class="g">◆</span>
         <div>Reflection engine based on <a href="https://github.com/Isaac-Harper/mirror" target="_blank" rel="noopener">Mirror</a> by <strong>Isaac Harper</strong> — licensed under MIT.</div>
       </div>
       <div class="credit reveal">
-        <span class="glyph">◆</span>
+        <span class="g">◆</span>
         <div>Mirror Cube block, Rageforge creative tab and integration by <strong>Rageforge</strong>.</div>
       </div>
       <div class="credit reveal">
-        <span class="glyph">◆</span>
-        <div>Free for the community. Built for Minecraft <strong>26.2</strong> on Fabric.</div>
+        <span class="g">◆</span>
+        <div>Free for the community. Built for Minecraft <strong>26.2</strong> on Fabric. Technical breakdown in the <a href="docs.html">documentation</a>.</div>
       </div>
     </div>
   </section>
 
   <div class="cta-band">
-    <div class="cta-band-inner reveal">
+    <div class="cta-band-inner reveal-scale">
       <div class="bg"></div>
       <div class="fg">
         <h2>Put a mirror in your world.</h2>
         <p>Download, drop into <span class="inline-code">mods</span>, and start reflecting.</p>
-        <div class="cta-row" style="margin-bottom:0">
-          <a class="btn btn-primary" href="https://github.com/TheRealDevCH/Repotome_Rageforge_initials/releases">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-            Get the mod
+        <div class="cta-row">
+          <a class="btn btn-primary" href="https://github.com/TheRealDevCH/Rageforge-Spiegelwuerfel/releases/latest">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            Get the latest version
           </a>
-          <a class="btn btn-ghost" href="https://github.com/TheRealDevCH/Repotome_Rageforge_initials">
-            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2A10 10 0 002 12c0 4.42 2.87 8.17 6.84 9.5.5.09.66-.21.66-.47v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.08 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.56-1.11-4.56-4.95 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02a9.6 9.6 0 015 0c1.91-1.29 2.75-1.02 2.75-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.85-2.34 4.7-4.57 4.95.36.31.68.92.68 1.85v2.74c0 .27.16.57.67.47A10 10 0 0022 12A10 10 0 0012 2z"/></svg>
-            Source on GitHub
-          </a>
+          <a class="btn btn-ghost" href="docs.html">Read the docs</a>
         </div>
       </div>
     </div>
@@ -1116,75 +823,30 @@
 
 </main>
 
-<footer>
+<footer class="site-foot">
   <div class="foot-inner">
     <div class="foot-brand">
-      <img src="assets/mirror-icon.png" alt="">
+      <img src="assets/logo.svg" alt="">
       <span>Rageforge Mirror Cube</span>
     </div>
-    <div>
-      <a href="https://github.com/TheRealDevCH/Repotome_Rageforge_initials">GitHub</a> ·
-      <a href="https://github.com/TheRealDevCH/Repotome_Rageforge_initials/releases">Releases</a> ·
+    <div class="foot-links">
+      <a href="docs.html">Documentation</a><span class="dot">·</span>
+      <a href="https://github.com/TheRealDevCH/Rageforge-Spiegelwuerfel">Release hub</a><span class="dot">·</span>
+      <a href="https://github.com/TheRealDevCH/Rageforge-Spiegelwuerfel/releases/latest">Latest</a><span class="dot">·</span>
       <a href="https://github.com/Isaac-Harper/mirror" target="_blank" rel="noopener">Upstream Mirror (MIT)</a>
     </div>
   </div>
 </footer>
 
 <div class="lightbox" id="lightbox">
-  <span class="close">✕</span>
+  <span class="x">✕</span>
   <img src="" alt="">
 </div>
 
+<script type="module" src="assets/cube.js"></script>
+<script src="assets/site.js"></script>
 <script>
-  // sticky nav state
-  const nav = document.getElementById('nav');
-  const onScroll = () => nav.classList.toggle('scrolled', window.scrollY > 24);
-  onScroll();
-  window.addEventListener('scroll', onScroll, { passive: true });
-
-  // scroll reveal
-  const io = new IntersectionObserver((entries) => {
-    entries.forEach((e, i) => {
-      if (e.isIntersecting) {
-        e.target.style.transitionDelay = (i * 55) + 'ms';
-        e.target.classList.add('in');
-        io.unobserve(e.target);
-      }
-    });
-  }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
-  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
-
-  // hero parallax
-  const heroBg = document.querySelector('.hero-bg');
-  window.addEventListener('scroll', () => {
-    const y = window.scrollY;
-    if (y < window.innerHeight) heroBg.style.transform = `scale(1.08) translateY(${y * 0.22}px)`;
-  }, { passive: true });
-
-  // feature spotlight
-  document.querySelectorAll('.feature').forEach(card => {
-    card.addEventListener('pointermove', e => {
-      const r = card.getBoundingClientRect();
-      card.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100) + '%');
-      card.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100) + '%');
-    });
-  });
-
-  // copy config
-  const copyBtn = document.getElementById('copyBtn');
-  copyBtn.addEventListener('click', async () => {
-    const text = document.getElementById('cfgCode').innerText;
-    try {
-      await navigator.clipboard.writeText(text);
-      copyBtn.textContent = 'Copied';
-      copyBtn.classList.add('done');
-      setTimeout(() => { copyBtn.textContent = 'Copy'; copyBtn.classList.remove('done'); }, 1800);
-    } catch (_) {
-      copyBtn.textContent = 'Press Ctrl+C';
-    }
-  });
-
-  // lightbox
+  /* ---------- lightbox ---------- */
   const lb = document.getElementById('lightbox');
   const lbImg = lb.querySelector('img');
   document.querySelectorAll('.shot').forEach(fig => {
@@ -1198,6 +860,111 @@
   const closeLb = () => { lb.classList.remove('open'); document.body.style.overflow = ''; };
   lb.addEventListener('click', closeLb);
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLb(); });
+
+  /* ---------- copy config ---------- */
+  const copyBtn = document.getElementById('copyBtn');
+  copyBtn.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(document.getElementById('cfgCode').innerText);
+      copyBtn.textContent = 'Copied';
+      copyBtn.classList.add('done');
+      setTimeout(() => { copyBtn.textContent = 'Copy'; copyBtn.classList.remove('done'); }, 1800);
+    } catch (_) { copyBtn.textContent = 'Ctrl+C'; }
+  });
+
+  /* ---------- feature spotlight ---------- */
+  document.querySelectorAll('.feature').forEach(card => {
+    card.addEventListener('pointermove', e => {
+      const r = card.getBoundingClientRect();
+      card.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100) + '%');
+      card.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100) + '%');
+    });
+  });
+
+  /* ---------- live release list ---------- */
+  const HUB = 'TheRealDevCH/Rageforge-Spiegelwuerfel';
+  const HUB_URL = 'https://github.com/' + HUB;
+
+  const fmtDate = (iso) => {
+    try {
+      return new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    } catch (_) { return ''; }
+  };
+  const fmtSize = (b) => b >= 1048576 ? (b / 1048576).toFixed(1) + ' MB' : Math.round(b / 1024) + ' KB';
+
+  function pickAsset(rel) {
+    const a = (rel.assets || []).find(x => /\.(zip|jar)$/i.test(x.name));
+    return a ? a.browser_download_url : rel.zipball_url || (HUB_URL + '/releases/tag/' + rel.tag_name);
+  }
+
+  async function loadReleases() {
+    const verList = document.getElementById('ver-list');
+    try {
+      const res = await fetch('https://api.github.com/repos/' + HUB + '/releases?per_page=30', {
+        headers: { 'Accept': 'application/vnd.github+json' }
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const rels = (await res.json()).filter(r => !r.draft);
+      if (!rels.length) throw new Error('no releases');
+
+      const latest = rels.find(r => !r.prerelease) || rels[0];
+
+      document.getElementById('dl-ver').textContent = latest.tag_name;
+      document.getElementById('spec-latest').textContent = latest.tag_name;
+      const pill = document.getElementById('dl-pill');
+      pill.textContent = latest.prerelease ? 'Pre-release' : 'Latest';
+      pill.className = 'pill ' + (latest.prerelease ? 'pre' : 'latest');
+
+      const assetCount = (latest.assets || []).length;
+      document.getElementById('dl-sub').textContent =
+        'Published ' + fmtDate(latest.published_at) + ' · Minecraft 26.2 · Fabric' +
+        (assetCount ? ' · ' + assetCount + ' file' + (assetCount === 1 ? '' : 's') : ' · source archive');
+      document.getElementById('dl-main').href = pickAsset(latest);
+      document.getElementById('dl-notes').href = latest.html_url;
+
+      verList.innerHTML = rels.map(r => {
+        const isLatest = r.tag_name === latest.tag_name;
+        const size = (r.assets || []).reduce((s, a) => s + (a.size || 0), 0);
+        return '<div class="ver-row reveal in">' +
+          '<div class="l">' +
+            '<span class="tag-v">' + r.tag_name + '</span>' +
+            (isLatest ? '<span class="pill latest">Latest</span>' : '') +
+            (r.prerelease ? '<span class="pill pre">Pre-release</span>' : '') +
+            '<span class="date">' + fmtDate(r.published_at) + (size ? ' · ' + fmtSize(size) : '') + '</span>' +
+          '</div>' +
+          '<div class="r">' +
+            '<a class="get" href="' + r.html_url + '">Notes</a>' +
+            '<a class="btn btn-ghost btn-sm" href="' + pickAsset(r) + '">Download</a>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+    } catch (err) {
+      /* fall back to the static index committed in the hub repo */
+      try {
+        const vres = await fetch('https://raw.githubusercontent.com/' + HUB + '/main/versions.json');
+        const data = await vres.json();
+        const v = data.versions || [];
+        document.getElementById('dl-ver').textContent = data.latest || (v[0] && v[0].version) || 'v0.1.0';
+        document.getElementById('spec-latest').textContent = data.latest || 'v0.1.0';
+        document.getElementById('dl-sub').textContent = 'Minecraft 26.2 · Fabric · from versions.json';
+        verList.innerHTML = v.map(x =>
+          '<div class="ver-row reveal in"><div class="l">' +
+            '<span class="tag-v">' + x.version + '</span>' +
+            '<span class="date">' + (x.released || '') + ' · MC ' + (x.minecraft || '') + '</span>' +
+          '</div><div class="r">' +
+            '<a class="btn btn-ghost btn-sm" href="' + HUB_URL + '/releases/tag/' + x.version + '">Download</a>' +
+          '</div></div>'
+        ).join('');
+      } catch (_) {
+        document.getElementById('dl-ver').textContent = 'v0.1.0';
+        document.getElementById('spec-latest').textContent = 'v0.1.0';
+        document.getElementById('dl-sub').textContent = 'Open the release hub on GitHub for all versions.';
+        verList.innerHTML = '<div class="ver-empty">Could not reach GitHub. ' +
+          '<a href="' + HUB_URL + '/releases" style="color:var(--sky-bright)">Browse all releases →</a></div>';
+      }
+    }
+  }
+  loadReleases();
 </script>
 
 </body>

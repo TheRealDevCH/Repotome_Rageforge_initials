@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Rageforge Mirror Cube">
+  <defs>
+    <linearGradient id="fTop" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.45" stop-color="#dfe9ff"/>
+      <stop offset="1" stop-color="#a9c4f2"/>
+    </linearGradient>
+    <linearGradient id="fLeft" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7f9fd8"/>
+      <stop offset="0.55" stop-color="#5c7cb4"/>
+      <stop offset="1" stop-color="#425a86"/>
+    </linearGradient>
+    <linearGradient id="fRight" x1="1" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#c8dcff"/>
+      <stop offset="0.5" stop-color="#94b7f5"/>
+      <stop offset="1" stop-color="#6c8fc9"/>
+    </linearGradient>
+    <linearGradient id="glint" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.95"/>
+      <stop offset="0.5" stop-color="#ffffff" stop-opacity="0.12"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="halo" cx="0.5" cy="0.42" r="0.62">
+      <stop offset="0" stop-color="#94b7f5" stop-opacity="0.4"/>
+      <stop offset="1" stop-color="#94b7f5" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <circle cx="32" cy="30" r="27" fill="url(#halo)"/>
+
+  <!-- top face -->
+  <path d="M32 7 L54 19.5 L32 32 L10 19.5 Z" fill="url(#fTop)"/>
+  <!-- left face -->
+  <path d="M10 19.5 L32 32 L32 57 L10 44.5 Z" fill="url(#fLeft)"/>
+  <!-- right face -->
+  <path d="M54 19.5 L54 44.5 L32 57 L32 32 Z" fill="url(#fRight)"/>
+
+  <!-- specular glints -->
+  <path d="M32 7 L54 19.5 L32 32 L10 19.5 Z" fill="url(#glint)" opacity="0.5"/>
+  <path d="M13.6 21.6 L29 30.4 L29 40.6 L13.6 31.8 Z" fill="#ffffff" opacity="0.11"/>
+  <path d="M50.4 22.4 L50.4 30.4 L35 39.2 L35 31.2 Z" fill="#ffffff" opacity="0.18"/>
+  <path d="M32 10.4 L44.4 17.5 L32 24.6 L19.6 17.5 Z" fill="#ffffff" opacity="0.28"/>
+</svg>

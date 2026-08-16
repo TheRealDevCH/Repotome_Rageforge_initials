@@ -1,0 +1,1463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Documentation — Rageforge Mirror Cube</title>
+<meta name="description" content="Technical documentation for the Rageforge Mirror Cube: how planar reflections are rendered, which mixins are used, why the mod is expensive, and how every config value maps to real render cost.">
+<meta name="theme-color" content="#04070b">
+<link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/site.css">
+<style>
+  body { background: var(--ink-950); }
+
+  /* ============ docs shell ============ */
+  .docs-shell {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: calc(var(--nav-h) + 34px) 24px 40px;
+    display: grid;
+    grid-template-columns: 268px minmax(0, 1fr) 214px;
+    gap: 40px;
+    align-items: start;
+  }
+  @media (max-width: 1180px) { .docs-shell { grid-template-columns: 250px minmax(0,1fr); } .toc-right { display: none; } }
+  @media (max-width: 900px)  { .docs-shell { grid-template-columns: 1fr; gap: 24px; } }
+
+  /* ============ tree sidebar ============ */
+  .tree-wrap {
+    position: sticky;
+    top: calc(var(--nav-h) + 22px);
+    max-height: calc(100vh - var(--nav-h) - 44px);
+    overflow-y: auto;
+    padding-right: 8px;
+  }
+  @media (max-width: 900px) {
+    .tree-wrap { position: static; max-height: none; border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; background: var(--panel); }
+  }
+  .tree-title {
+    font-size: 0.68rem; font-weight: 750; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--muted-dim); margin-bottom: 14px; padding-left: 4px;
+  }
+  .tree { font-size: 0.885rem; }
+  .tree ul { list-style: none; margin: 0; padding: 0; }
+  .tree > ul > li { margin-bottom: 2px; }
+
+  .tree .node {
+    display: flex; align-items: center; gap: 7px;
+    padding: 6px 9px; border-radius: 8px;
+    color: var(--muted); cursor: pointer;
+    transition: color 0.2s, background 0.2s;
+    user-select: none;
+    font-weight: 550;
+  }
+  .tree .node:hover { color: var(--text); background: var(--panel); }
+  .tree .node.active { color: var(--sky-bright); background: rgba(148,183,245,0.1); }
+  .tree .node .chev {
+    width: 13px; height: 13px; flex-shrink: 0;
+    transition: transform 0.25s var(--ease);
+    opacity: 0.65;
+  }
+  .tree .node.open .chev { transform: rotate(90deg); }
+  .tree .node .glyph { flex-shrink: 0; opacity: 0.8; font-size: 0.85em; width: 13px; text-align: center; }
+  .tree .node .txt { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* nested list: animated collapse */
+  .tree .kids {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.32s var(--ease);
+    margin-left: 12px;
+    border-left: 1px solid var(--line);
+    padding-left: 6px;
+  }
+  .tree .kids > div { overflow: hidden; }
+  .tree .kids.open { grid-template-rows: 1fr; }
+  .tree .kids .node { font-weight: 450; font-size: 0.855rem; color: var(--muted-dim); }
+  .tree .kids .node:hover { color: var(--text); }
+  .tree .kids .node.active { color: var(--sky-bright); }
+
+  /* ============ content ============ */
+  .docs-main { min-width: 0; }
+  .docs-hero {
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: linear-gradient(155deg, rgba(148,183,245,0.09), rgba(255,255,255,0.012) 60%, transparent);
+    padding: 34px 34px 30px;
+    margin-bottom: 44px;
+  }
+  .docs-hero .kicker {
+    font-size: 0.7rem; font-weight: 750; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--sky); margin-bottom: 12px;
+  }
+  .docs-hero h1 {
+    font-size: clamp(1.85rem, 4.2vw, 2.7rem);
+    font-weight: 800; letter-spacing: -0.032em; line-height: 1.08; margin-bottom: 13px;
+  }
+  .docs-hero p { color: var(--muted); font-size: 1.03rem; max-width: 640px; }
+  .docs-hero .facts {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px;
+  }
+  .docs-hero .facts span {
+    font-size: 0.76rem; color: var(--muted);
+    padding: 5px 12px; border: 1px solid var(--line); border-radius: 999px;
+    background: rgba(255,255,255,0.03);
+  }
+
+  article section {
+    scroll-margin-top: calc(var(--nav-h) + 26px);
+    margin-bottom: 62px;
+  }
+  article h2 {
+    font-size: clamp(1.5rem, 3.2vw, 1.95rem);
+    font-weight: 750; letter-spacing: -0.026em; line-height: 1.16;
+    margin-bottom: 8px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--line);
+    display: flex; align-items: baseline; gap: 12px;
+  }
+  article h2 .num {
+    font-family: var(--mono); font-size: 0.6em; font-weight: 400;
+    color: var(--sky); opacity: 0.75;
+  }
+  article h3 {
+    font-size: 1.12rem; font-weight: 650; letter-spacing: -0.016em;
+    margin: 32px 0 10px; color: var(--text);
+    scroll-margin-top: calc(var(--nav-h) + 26px);
+  }
+  article h4 {
+    font-size: 0.97rem; font-weight: 650; margin: 22px 0 8px; color: var(--silver);
+  }
+  article p { color: var(--muted); margin-bottom: 15px; }
+  article p strong, article li strong { color: var(--text); font-weight: 600; }
+  article em { color: var(--silver); font-style: italic; }
+  article ul, article ol { color: var(--muted); margin: 0 0 16px 0; padding-left: 22px; }
+  article li { margin-bottom: 8px; }
+  article li::marker { color: var(--sky); }
+  article a.link { color: var(--sky-bright); border-bottom: 1px solid rgba(185,210,255,0.32); }
+  article a.link:hover { border-bottom-color: var(--sky-bright); }
+  article code {
+    font-family: var(--mono); font-size: 0.855em;
+    background: rgba(255,255,255,0.07); color: var(--sky-bright);
+    padding: 2px 6px; border-radius: 5px;
+  }
+  article .lead {
+    font-size: 1.06rem; color: var(--silver);
+    padding-left: 16px; border-left: 2px solid rgba(148,183,245,0.45);
+    margin: 18px 0 22px;
+  }
+
+  /* code blocks */
+  .cb {
+    border: 1px solid var(--line); border-radius: var(--radius);
+    background: rgba(2,4,7,0.75); overflow: hidden; margin: 18px 0 22px;
+  }
+  .cb-head {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 10px 15px; border-bottom: 1px solid var(--line);
+    background: rgba(255,255,255,0.026);
+    font-family: var(--mono); font-size: 0.76rem; color: var(--muted);
+  }
+  .cb-head .dotf { display: flex; align-items: center; gap: 8px; }
+  .cb-head .dotf::before {
+    content: ''; width: 7px; height: 7px; border-radius: 50%;
+    background: var(--sky); box-shadow: 0 0 7px var(--sky);
+  }
+  .cb pre {
+    padding: 17px 19px; overflow-x: auto;
+    font-family: var(--mono); font-size: 0.815rem; line-height: 1.82;
+    color: #cbd6e6;
+  }
+  .cb pre .c  { color: #5d6b80; font-style: italic; }
+  .cb pre .kw { color: #c58fef; }
+  .cb pre .ty { color: #7fd6c0; }
+  .cb pre .st { color: #b9d2ff; }
+  .cb pre .nu { color: var(--amber); }
+  .cb pre .fn { color: #ffd894; }
+  .cb pre .k  { color: var(--sky-bright); }
+  .cb pre .p  { color: var(--muted-dim); }
+
+  /* callouts */
+  .callout {
+    display: flex; gap: 15px; align-items: flex-start;
+    padding: 19px 22px; border-radius: var(--radius);
+    border: 1px solid var(--line); background: var(--panel);
+    margin: 20px 0 24px;
+  }
+  .callout .ci { flex-shrink: 0; font-size: 1.15rem; line-height: 1.4; }
+  .callout p { margin: 0; }
+  .callout p + p { margin-top: 9px; }
+  .callout.why  { border-color: rgba(148,183,245,0.3); background: linear-gradient(150deg, rgba(148,183,245,0.1), transparent 65%); }
+  .callout.why  p { color: #c6d6ee; }
+  .callout.warn { border-color: rgba(240,182,74,0.3); background: linear-gradient(150deg, rgba(240,182,74,0.1), transparent 65%); }
+  .callout.warn p { color: #dcc9a4; }
+  .callout.warn code { background: rgba(240,182,74,0.14); color: var(--amber-soft); }
+  .callout.bad  { border-color: rgba(240,120,90,0.3); background: linear-gradient(150deg, rgba(240,120,90,0.09), transparent 65%); }
+  .callout.bad  p { color: #eec3b6; }
+  .callout .ct { display: block; font-weight: 700; color: var(--text); margin-bottom: 5px; font-size: 0.95rem; }
+
+  /* tables */
+  .tw { overflow-x: auto; margin: 18px 0 24px; border: 1px solid var(--line); border-radius: var(--radius); }
+  table { width: 100%; border-collapse: collapse; font-size: 0.9rem; min-width: 480px; }
+  thead th {
+    text-align: left; padding: 12px 16px;
+    background: rgba(255,255,255,0.035);
+    color: var(--muted-dim);
+    font-size: 0.71rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  tbody td { padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.055); color: var(--muted); vertical-align: top; }
+  tbody tr:last-child td { border-bottom: 0; }
+  tbody tr:hover td { background: rgba(255,255,255,0.018); }
+  tbody td:first-child { color: var(--text); }
+  tbody td code { white-space: nowrap; }
+
+  /* pipeline diagram */
+  .pipe { display: grid; gap: 9px; margin: 22px 0 26px; counter-reset: pp; }
+  .pipe-step {
+    display: flex; gap: 15px; align-items: flex-start;
+    padding: 16px 19px; border: 1px solid var(--line); border-radius: 13px;
+    background: var(--panel);
+    transition: border-color 0.3s, background 0.3s, transform 0.3s var(--ease);
+  }
+  .pipe-step:hover { border-color: rgba(148,183,245,0.4); background: var(--panel-strong); transform: translateX(4px); }
+  .pipe-step .pn {
+    counter-increment: pp; flex-shrink: 0;
+    width: 27px; height: 27px; display: grid; place-items: center; border-radius: 8px;
+    background: rgba(148,183,245,0.14); border: 1px solid rgba(148,183,245,0.28);
+    color: var(--sky-bright); font-family: var(--mono); font-weight: 700; font-size: 0.78rem;
+  }
+  .pipe-step .pn::before { content: counter(pp); }
+  .pipe-step .pb { min-width: 0; }
+  .pipe-step .pb strong { display: block; font-size: 0.97rem; font-weight: 620; color: var(--text); margin-bottom: 3px; }
+  .pipe-step .pb span { color: var(--muted); font-size: 0.895rem; }
+  .pipe-step .pb .mx {
+    display: inline-block; margin-top: 7px;
+    font-family: var(--mono); font-size: 0.73rem;
+    color: var(--muted-dim); padding: 2px 8px;
+    border: 1px solid var(--line); border-radius: 6px;
+  }
+
+  /* file tree render */
+  .ftree {
+    font-family: var(--mono); font-size: 0.8rem; line-height: 2;
+    border: 1px solid var(--line); border-radius: var(--radius);
+    background: rgba(2,4,7,0.72); padding: 18px 20px;
+    overflow-x: auto; margin: 18px 0 24px;
+    color: var(--muted);
+  }
+  .ftree .d { color: var(--sky-bright); }
+  .ftree .f { color: var(--silver); }
+  .ftree .cm { color: var(--muted-dim); }
+  .ftree .br { color: rgba(255,255,255,0.2); }
+
+  /* right-hand TOC */
+  .toc-right {
+    position: sticky;
+    top: calc(var(--nav-h) + 22px);
+    max-height: calc(100vh - var(--nav-h) - 44px);
+    overflow-y: auto;
+    font-size: 0.82rem;
+  }
+  .toc-right .tt {
+    font-size: 0.66rem; font-weight: 750; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--muted-dim); margin-bottom: 12px;
+  }
+  .toc-right a {
+    display: block; padding: 5px 0 5px 12px;
+    color: var(--muted-dim); border-left: 2px solid var(--line);
+    transition: color 0.2s, border-color 0.2s;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .toc-right a:hover { color: var(--text); }
+  .toc-right a.on { color: var(--sky-bright); border-left-color: var(--sky); }
+
+  .docs-foot-nav {
+    display: flex; justify-content: space-between; gap: 14px; flex-wrap: wrap;
+    margin-top: 20px; padding-top: 26px; border-top: 1px solid var(--line);
+  }
+</style>
+</head>
+<body>
+
+<div class="ambient"></div>
+<div class="progress" id="progress"></div>
+
+<nav class="site-nav" id="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="brand">
+      <img src="assets/logo.svg" alt="">
+      Rageforge <span class="sep">/</span> <span class="sub">Docs</span>
+    </a>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="index.html#downloads">Versions</a>
+      <a href="index.html#performance">Performance</a>
+      <a class="nav-cta" href="https://github.com/TheRealDevCH/Rageforge-Spiegelwuerfel/releases/latest">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        Latest
+      </a>
+    </div>
+  </div>
+</nav>
+
+<div class="docs-shell">
+
+  <!-- ================= TREE SIDEBAR ================= -->
+  <aside class="tree-wrap">
+    <div class="tree-title">Documentation</div>
+    <nav class="tree" id="tree">
+      <ul>
+        <li>
+          <div class="node" data-target="overview"><span class="glyph">◆</span><span class="txt">Overview</span></div>
+        </li>
+
+        <li>
+          <div class="node has-kids open" data-group="g-concept"><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg><span class="txt">Concept</span></div>
+          <div class="kids open" id="g-concept"><div><ul>
+            <li><div class="node" data-target="what-is-a-mirror"><span class="glyph">·</span><span class="txt">What a mirror really is</span></div></li>
+            <li><div class="node" data-target="planar-reflection"><span class="glyph">·</span><span class="txt">Planar reflection math</span></div></li>
+            <li><div class="node" data-target="why-not-texture"><span class="glyph">·</span><span class="txt">Why not just a texture</span></div></li>
+          </ul></div></div>
+        </li>
+
+        <li>
+          <div class="node has-kids" data-group="g-pipeline"><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg><span class="txt">Render pipeline</span></div>
+          <div class="kids" id="g-pipeline"><div><ul>
+            <li><div class="node" data-target="pipeline"><span class="glyph">·</span><span class="txt">Frame walkthrough</span></div></li>
+            <li><div class="node" data-target="oblique"><span class="glyph">·</span><span class="txt">Oblique near plane</span></div></li>
+            <li><div class="node" data-target="fbo"><span class="glyph">·</span><span class="txt">FBO &amp; depth seeding</span></div></li>
+            <li><div class="node" data-target="recursion"><span class="glyph">·</span><span class="txt">Recursion &amp; budget</span></div></li>
+            <li><div class="node" data-target="player-exclusion"><span class="glyph">·</span><span class="txt">Why you are invisible</span></div></li>
+          </ul></div></div>
+        </li>
+
+        <li>
+          <div class="node has-kids" data-group="g-code"><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg><span class="txt">Code structure</span></div>
+          <div class="kids" id="g-code"><div><ul>
+            <li><div class="node" data-target="jar-layout"><span class="glyph">·</span><span class="txt">Jar layout</span></div></li>
+            <li><div class="node" data-target="classes"><span class="glyph">·</span><span class="txt">Class responsibilities</span></div></li>
+            <li><div class="node" data-target="mixins"><span class="glyph">·</span><span class="txt">All 14 mixins</span></div></li>
+            <li><div class="node" data-target="blocks"><span class="glyph">·</span><span class="txt">Blocks &amp; registration</span></div></li>
+            <li><div class="node" data-target="rageforge-layer"><span class="glyph">·</span><span class="txt">The Rageforge layer</span></div></li>
+          </ul></div></div>
+        </li>
+
+        <li>
+          <div class="node has-kids" data-group="g-perf"><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg><span class="txt">Performance</span></div>
+          <div class="kids" id="g-perf"><div><ul>
+            <li><div class="node" data-target="performance-model"><span class="glyph">·</span><span class="txt">Cost model</span></div></li>
+            <li><div class="node" data-target="config-reference"><span class="glyph">·</span><span class="txt">Config reference</span></div></li>
+            <li><div class="node" data-target="presets"><span class="glyph">·</span><span class="txt">Tuning presets</span></div></li>
+          </ul></div></div>
+        </li>
+
+        <li>
+          <div class="node has-kids" data-group="g-compat"><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg><span class="txt">Compatibility</span></div>
+          <div class="kids" id="g-compat"><div><ul>
+            <li><div class="node" data-target="sodium"><span class="glyph">·</span><span class="txt">Why Sodium works</span></div></li>
+            <li><div class="node" data-target="iris"><span class="glyph">·</span><span class="txt">Why Iris does not</span></div></li>
+            <li><div class="node" data-target="requirements"><span class="glyph">·</span><span class="txt">Requirements</span></div></li>
+          </ul></div></div>
+        </li>
+
+        <li>
+          <div class="node has-kids" data-group="g-meta"><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg><span class="txt">Reference</span></div>
+          <div class="kids" id="g-meta"><div><ul>
+            <li><div class="node" data-target="ids"><span class="glyph">·</span><span class="txt">IDs &amp; assets</span></div></li>
+            <li><div class="node" data-target="troubleshooting"><span class="glyph">·</span><span class="txt">Troubleshooting</span></div></li>
+            <li><div class="node" data-target="releasing"><span class="glyph">·</span><span class="txt">Publishing versions</span></div></li>
+            <li><div class="node" data-target="license"><span class="glyph">·</span><span class="txt">License &amp; credits</span></div></li>
+          </ul></div></div>
+        </li>
+      </ul>
+    </nav>
+  </aside>
+
+  <!-- ================= CONTENT ================= -->
+  <main class="docs-main">
+    <div class="docs-hero reveal">
+      <div class="kicker">Technical documentation</div>
+      <h1>How the Mirror Cube works — and why.</h1>
+      <p>
+        A complete breakdown derived from analysing the shipped jars: the reflection algorithm,
+        all fourteen client mixins, the render-pass budget, and the reasoning behind every
+        configuration value.
+      </p>
+      <div class="facts">
+        <span>mirror 0.3.0-rageforge+26.2</span>
+        <span>rageforge 0.1.0+26.2</span>
+        <span>Minecraft 26.2</span>
+        <span>Fabric 0.19+</span>
+        <span>Java 25+</span>
+        <span>14 client mixins</span>
+      </div>
+    </div>
+
+    <article>
+
+      <!-- ============ OVERVIEW ============ -->
+      <section id="overview">
+        <h2><span class="num">01</span> Overview</h2>
+        <p class="lead">
+          The Mirror Cube is not a shiny texture. It is a real-time <strong>planar reflection</strong>:
+          for every visible mirror face, the game renders the world a second time from a mirrored
+          camera, into an off-screen buffer, and pastes that image onto the face.
+        </p>
+        <p>
+          The mod ships as two jars that do very different jobs:
+        </p>
+        <ul>
+          <li><strong><code>mirror</code></strong> — the reflection engine. Blocks, block entity, renderer, framebuffer management, config, and fourteen client-side mixins that bend Minecraft's renderer into rendering a second view.</li>
+          <li><strong><code>rageforge</code></strong> — a thin content layer. It registers the Rageforge creative tab and the six-sided <em>Spiegelwürfel</em> (Mirror Cube) item/block entry, and declares a hard dependency on <code>mirror</code>.</li>
+        </ul>
+        <div class="callout why">
+          <span class="ci">💡</span>
+          <div>
+            <span class="ct">The one idea behind everything</span>
+            <p>
+              A flat mirror is optically identical to a window into a mirrored copy of the world.
+              So instead of simulating light bouncing, the mod <em>moves the camera</em> to the mirrored
+              position, renders normally, and clips everything behind the mirror plane away.
+              Every design decision and every performance cost in this mod follows from that single trick.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ CONCEPT ============ -->
+      <section id="what-is-a-mirror">
+        <h2><span class="num">02</span> What a mirror really is</h2>
+        <p>
+          When you look at a mirror you do not see the mirror — you see a <em>virtual image</em> of the room
+          behind you, located exactly as far behind the mirror plane as the real object is in front of it.
+        </p>
+        <p>
+          That means a perfect mirror can be replaced by a hole in the wall with a second camera behind it.
+          The second camera sits at the reflected position of your eye, looks in the reflected direction,
+          and everything it sees is exactly what the mirror should show. This is the entire basis of
+          the technique — no ray tracing, no cube maps, no screen-space approximation.
+        </p>
+        <h3>Consequences of that equivalence</h3>
+        <ul>
+          <li><strong>Reflections have real parallax.</strong> Move sideways and the reflected scene shifts correctly, because you moved a real camera.</li>
+          <li><strong>Reflections are geometrically exact.</strong> No distortion at grazing angles, unlike screen-space reflections.</li>
+          <li><strong>Reflections cost a full render.</strong> There is no shortcut: seeing a mirror means drawing the world twice.</li>
+          <li><strong>Mirrors can see other mirrors.</strong> Which immediately implies recursion, and therefore a need for a hard limit.</li>
+        </ul>
+      </section>
+
+      <section id="planar-reflection">
+        <h2><span class="num">03</span> Planar reflection math</h2>
+        <p>
+          A mirror surface is defined by a point on the plane (its <strong>center</strong>) and a
+          <strong>normal</strong> pointing out of the glass. Reflecting the camera across that plane is a
+          few vector operations — and this is literally what the shipped
+          <code>MirrorReflection</code> class does, using <code>Vec3.subtract</code>,
+          <code>dot</code> and <code>scale</code>.
+        </p>
+        <div class="cb">
+          <div class="cb-head"><span class="dotf">reflect a point across the mirror plane</span><span>concept</span></div>
+<pre><span class="c">// d = signed distance from the plane along the normal</span>
+<span class="ty">double</span> d = point.<span class="fn">subtract</span>(center).<span class="fn">dot</span>(normal);
+
+<span class="c">// step twice that distance back along the normal</span>
+<span class="ty">Vec3</span> mirrored = point.<span class="fn">subtract</span>(normal.<span class="fn">scale</span>(<span class="nu">2.0</span> * d));
+
+<span class="c">// the view direction reflects the same way, without the offset</span>
+<span class="ty">Vec3</span> mirroredDir = dir.<span class="fn">subtract</span>(normal.<span class="fn">scale</span>(<span class="nu">2.0</span> * dir.<span class="fn">dot</span>(normal)));</pre>
+        </div>
+        <p>
+          Two details make this correct rather than merely plausible:
+        </p>
+        <ul>
+          <li><strong>Handedness flips.</strong> A reflection mirrors space, so triangle winding is inverted. Front faces become back faces; culling has to account for it or the reflected world turns inside out.</li>
+          <li><strong>Only the front half is valid.</strong> Geometry <em>behind</em> the mirror must never appear in the reflection. Solving that cleanly is the job of the oblique near plane described below.</li>
+        </ul>
+        <div class="callout why">
+          <span class="ci">🧭</span>
+          <div>
+            <span class="ct">Why a cube needs six of these</span>
+            <p>
+              Each face of the Mirror Cube is its own plane with its own normal, so each visible face needs
+              its own reflected camera and its own render. That is why a cube is inherently more expensive
+              than the flat wall mirror — and why the mod caps how many mirror surfaces it will draw with
+              <code>maxReflections</code>.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section id="why-not-texture">
+        <h2><span class="num">04</span> Why not just use a texture</h2>
+        <p>
+          Most "mirror" blocks in Minecraft are fakes. It is worth understanding what they give up,
+          because it explains why this mod accepts a heavy performance cost.
+        </p>
+        <div class="tw">
+          <table>
+            <thead>
+              <tr><th>Approach</th><th>How it looks</th><th>Cost</th><th>Fails at</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Shiny texture</td>
+                <td>Static highlight; nothing actually reflects</td>
+                <td>Free</td>
+                <td>Everything — it is just a decorative block</td>
+              </tr>
+              <tr>
+                <td>Cube map / probe</td>
+                <td>Plausible blurry reflection</td>
+                <td>Low</td>
+                <td>No parallax; wrong for flat surfaces; stale when the world changes</td>
+              </tr>
+              <tr>
+                <td>Screen-space reflection</td>
+                <td>Good for wet floors</td>
+                <td>Medium</td>
+                <td>Can only reflect what is already on screen; breaks at screen edges</td>
+              </tr>
+              <tr>
+                <td><strong>Planar reflection</strong> (this mod)</td>
+                <td>Geometrically exact, real parallax, mirrors see mirrors</td>
+                <td><strong>High</strong> — a full extra render per face</td>
+                <td>Nothing visually; it is the correct answer, it is just expensive</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          The mod chooses correctness and hands you the cost dials instead of hiding the trade-off.
+          That is why <code>config/mirror.json</code> exists and why the warning on the front page is prominent.
+        </p>
+      </section>
+
+      <!-- ============ PIPELINE ============ -->
+      <section id="pipeline">
+        <h2><span class="num">05</span> A frame, step by step</h2>
+        <p>
+          What follows is the actual order of operations, reconstructed from the mixin targets and
+          method names in the shipped jar. Each step names the mixin that makes it possible.
+        </p>
+        <div class="pipe">
+          <div class="pipe-step reveal">
+            <span class="pn"></span>
+            <div class="pb">
+              <strong>The main pass draws the world normally</strong>
+              <span>Terrain, entities, sky and clouds are rendered as usual. Mirror faces are drawn as ordinary geometry for now.</span>
+              <span class="mx">LevelRendererMainPassMixin · mirror$captureSceneDepth</span>
+            </div>
+          </div>
+          <div class="pipe-step reveal">
+            <span class="pn"></span>
+            <div class="pb">
+              <strong>Scene depth is captured</strong>
+              <span>The depth buffer of the finished main pass is copied. It later tells the reflection pass what was already in front of the mirror, so reflections cannot bleed over closer geometry.</span>
+              <span class="mx">MirrorFbo · captureSceneDepth · seedDepthInto</span>
+            </div>
+          </div>
+          <div class="pipe-step reveal">
+            <span class="pn"></span>
+            <div class="pb">
+              <strong>Visible mirror surfaces are collected</strong>
+              <span>Each mirror block entity contributes its plane (center + normal). The list is sorted and clipped to <code>maxReflections</code> so a wall of mirrors cannot explode the frame.</span>
+              <span class="mx">MirrorBlockEntityRenderer · MirrorReflection</span>
+            </div>
+          </div>
+          <div class="pipe-step reveal">
+            <span class="pn"></span>
+            <div class="pb">
+              <strong>The camera is mirrored</strong>
+              <span>Position and rotation are reflected across the plane and pushed into Minecraft's camera through an accessor, and view bobbing / hand effects are neutralised so they do not distort the reflected view.</span>
+              <span class="mx">CameraInvoker · mirror$setPosition · mirror$setRotation · mirror$setDetached</span>
+            </div>
+          </div>
+          <div class="pipe-step reveal">
+            <span class="pn"></span>
+            <div class="pb">
+              <strong>Rendering is redirected into an off-screen buffer</strong>
+              <span>Instead of the screen, the reflection pass writes into a dedicated framebuffer sized by <code>resolutionScale</code>. The captured depth is seeded into it first.</span>
+              <span class="mx">GameRendererTargetMixin · mirror$redirectToReflectionFbo</span>
+            </div>
+          </div>
+          <div class="pipe-step reveal">
+            <span class="pn"></span>
+            <div class="pb">
+              <strong>The projection gets an oblique near plane</strong>
+              <span>The near clip plane is skewed to coincide with the mirror surface, so anything behind the glass is clipped away for free. This is the trick that keeps reflections physically clean.</span>
+              <span class="mx">GameRendererMixin · FrustumMixin · mirror$applyFrustum</span>
+            </div>
+          </div>
+          <div class="pipe-step reveal">
+            <span class="pn"></span>
+            <div class="pb">
+              <strong>Culling and chunk bookkeeping are put in "reflection mode"</strong>
+              <span>The frustum offset, the section occlusion octree rebuild and the chunk grid shift are all suppressed during the pass, so the reflected view does not corrupt the main view's culling state.</span>
+              <span class="mx">SectionOcclusionGraphMixin · ViewAreaMixin · FrustumMixin</span>
+            </div>
+          </div>
+          <div class="pipe-step reveal">
+            <span class="pn"></span>
+            <div class="pb">
+              <strong>Sky and clouds are guarded</strong>
+              <span>Sky and cloud renderers hold their own render targets and state. They are temporarily pointed at the reflection buffer, then restored, so the reflected sky matches the reflected world.</span>
+              <span class="mx">SkyRendererMixin · LevelRendererCloudMixin · CloudRendererAccessor</span>
+            </div>
+          </div>
+          <div class="pipe-step reveal">
+            <span class="pn"></span>
+            <div class="pb">
+              <strong>The world is drawn again — recursively if allowed</strong>
+              <span>If the reflected view contains another mirror, the whole procedure re-enters, bounded by <code>recursionDepth</code>, <code>nestedPerParent</code> and the global <code>maxRenderPasses</code> budget.</span>
+              <span class="mx">GameRendererMixin · mirror$renderReflections</span>
+            </div>
+          </div>
+          <div class="pipe-step reveal">
+            <span class="pn"></span>
+            <div class="pb">
+              <strong>State is restored and the face is textured</strong>
+              <span>Camera, projection, frustum, render target and sky state are all rolled back. The finished buffer is sampled as the mirror face's texture, with distance fog applied from <code>fogStartBlocks</code>.</span>
+              <span class="mx">MirrorBlockEntityRenderer$State</span>
+            </div>
+          </div>
+        </div>
+        <div class="callout why">
+          <span class="ci">🔁</span>
+          <div>
+            <span class="ct">Why so much of the code is "save and restore"</span>
+            <p>
+              Minecraft's renderer assumes exactly one camera and one view per frame. The mod re-enters
+              that renderer while it is already running. Almost every mixin here exists to make a piece
+              of global renderer state temporarily lie about the camera, and then to restore it perfectly —
+              because a single leaked value shows up as flickering, broken culling, or a corrupted sky
+              in the main view.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section id="oblique">
+        <h2><span class="num">06</span> The oblique near plane</h2>
+        <p>
+          A mirrored camera sees too much. It also sees everything on the far side of the mirror —
+          the inside of the wall, the blocks behind the cube — which in reality would be hidden by the glass.
+        </p>
+        <p>
+          The clean fix is not to sort or mask geometry, but to change the projection: skew the
+          <strong>near clip plane</strong> so that it lies exactly on the mirror surface. Then the GPU's
+          normal clipping does the work at zero extra cost, and nothing behind the plane can ever be rasterised.
+        </p>
+        <div class="cb">
+          <div class="cb-head"><span class="dotf">oblique projection, conceptually</span><span>concept</span></div>
+<pre><span class="c">// The mirror plane is expressed in view space, then the projection</span>
+<span class="c">// matrix's third row is rewritten so the near plane coincides with it.</span>
+<span class="ty">Matrix4f</span> proj = camera.<span class="fn">projection</span>();
+<span class="ty">Vector4f</span> plane = mirrorPlaneInViewSpace();
+
+<span class="fn">applyObliqueNearClip</span>(proj, plane);
+
+<span class="c">// From here on, every draw call in the reflection pass is clipped</span>
+<span class="c">// against the glass for free — no per-object work required.</span></pre>
+        </div>
+        <p>
+          The frustum used for culling has to agree with that modified projection, otherwise the game
+          would cull chunks based on the wrong volume. That is exactly what
+          <code>FrustumMixin.mirror$skipOffsetInReflection</code> and
+          <code>LevelExtractorAccessor.mirror$applyFrustum</code> exist for: they let the mod install its
+          own frustum for the duration of the pass.
+        </p>
+        <div class="callout warn">
+          <span class="ci">⚠</span>
+          <div>
+            <span class="ct">Side effect worth knowing</span>
+            <p>
+              An oblique near plane makes depth precision non-uniform. In practice this can show up as
+              subtle z-fighting on surfaces that sit almost exactly in the mirror plane — which is one
+              reason the mirror block itself is a full block with the reflective surface slightly inset
+              rather than an infinitely thin sheet.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section id="fbo">
+        <h2><span class="num">07</span> Framebuffers and depth seeding</h2>
+        <p>
+          Reflections cannot be drawn straight to the screen — they have to land in a texture.
+          <code>MirrorFbo</code> owns that: it allocates render targets, keeps a pool of them
+          (<code>maxLevels</code> for the recursion depth), seeds depth into them, and releases them all
+          when the pass is over.
+        </p>
+        <div class="cb">
+          <div class="cb-head"><span class="dotf">MirrorFbo — observed members</span><span>from the shipped class</span></div>
+<pre><span class="kw">class</span> <span class="ty">MirrorFbo</span> {
+    <span class="ty">TextureTarget</span> <span class="fn">level</span>(<span class="ty">int</span> index, <span class="ty">int</span> width, <span class="ty">int</span> height);  <span class="c">// per-recursion target</span>
+    <span class="ty">void</span>          <span class="fn">seedDepthInto</span>(<span class="ty">TextureTarget</span> target);           <span class="c">// reuse main-pass depth</span>
+    <span class="ty">void</span>          <span class="fn">captureSceneDepth</span>();                        <span class="c">// snapshot the main pass</span>
+    <span class="ty">int</span>           maxLevels;                                    <span class="c">// bounded by recursionDepth</span>
+    <span class="ty">void</span>          <span class="fn">releaseAll</span>();                               <span class="c">// hand buffers back</span>
+}</pre>
+        </div>
+        <h3>Why depth is seeded rather than cleared</h3>
+        <p>
+          If the reflection buffer started with an empty depth buffer, the reflected image would happily
+          draw over things that are actually <em>in front of</em> the mirror in the real view — a player
+          standing between you and the cube, for instance. By copying the main pass's depth into the
+          reflection target first, the reflection is automatically occluded by whatever was already closer.
+        </p>
+        <h3>Why buffers are pooled</h3>
+        <p>
+          Each recursion level needs its own target, because level <em>n</em> is still being written while
+          level <em>n+1</em> renders into a different one. Allocating those per frame would thrash GPU memory,
+          so they are created once per size and reused, then released together.
+        </p>
+      </section>
+
+      <section id="recursion">
+        <h2><span class="num">08</span> Recursion and the render budget</h2>
+        <p>
+          Two mirrors facing each other are mathematically an infinite series of reflections. Something
+          has to stop it, and the mod uses three independent limits that all guard different failure modes.
+        </p>
+        <div class="tw">
+          <table>
+            <thead>
+              <tr><th>Limit</th><th>Guards against</th><th>Shape of the growth it tames</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>maxReflections</code></td>
+                <td>Many mirrors visible at once</td>
+                <td>Linear in the number of mirror faces on screen</td>
+              </tr>
+              <tr>
+                <td><code>recursionDepth</code></td>
+                <td>Mirror-in-mirror chains</td>
+                <td>Depth of the reflection tree</td>
+              </tr>
+              <tr>
+                <td><code>nestedPerParent</code></td>
+                <td>One reflection spawning many children</td>
+                <td>Branching factor — this is the exponential one</td>
+              </tr>
+              <tr>
+                <td><code>maxRenderPasses</code></td>
+                <td>Everything above combining badly</td>
+                <td>Absolute ceiling on total passes per frame</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          The first three describe a tree; the fourth is a hard stop on its total size.
+          With the shipped defaults the theoretical worst case is roughly
+          <code>1 + 2 + 4 + 8 = 15</code> passes along one chain
+          (<code>nestedPerParent = 2</code>, <code>recursionDepth = 4</code>), while
+          <code>maxRenderPasses = 48</code> caps the whole frame regardless of how the tree is shaped.
+        </p>
+        <div class="callout why">
+          <span class="ci">🌳</span>
+          <div>
+            <span class="ct">Why four knobs instead of one</span>
+            <p>
+              A single "quality" slider would either be too coarse or too dangerous. These four separate the
+              cases that actually behave differently: a hall of mirrors (breadth), a pair of facing mirrors
+              (depth), a nested arrangement (branching), and the raw frame budget. You can allow deep
+              recursion on one cube while still refusing to render twenty of them.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section id="player-exclusion">
+        <h2><span class="num">09</span> Why you are invisible in it</h2>
+        <p>
+          This is the mod's signature quirk and it follows directly from how the reflected camera is set up.
+        </p>
+        <p>
+          In first person, Minecraft does not render your own player model — the camera is inside it, and
+          the game only draws the held item and hand. The reflection pass reuses that same camera machinery
+          via <code>CameraInvoker</code>, including <code>mirror$setDetached</code>, and the hand/item
+          rendering is explicitly handled (<code>GameRendererMixin.mirror$seedHandDepth</code>,
+          which brackets <code>renderItemInHand</code>) and <code>GameRendererAccessor</code> neutralises
+          <code>bobView</code>, <code>bobHurt</code> and the spinning-effect timers.
+        </p>
+        <p>
+          The consequence: the reflection is rendered from a camera that behaves like <em>your</em> camera,
+          and your camera has never drawn your body. So the world, mobs, blocks and even other players
+          appear in the mirror — and you do not.
+        </p>
+        <div class="callout why">
+          <span class="ci">👤</span>
+          <div>
+            <span class="ct">Bug or feature?</span>
+            <p>
+              Physically it is wrong; a real mirror shows you. In practice it is the cheapest possible
+              behaviour and it is stable, so the mod embraces it. It is also the single most recognisable
+              trait of the block — a mirror that reflects your entire world but refuses to reflect you.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ CODE ============ -->
+      <section id="jar-layout">
+        <h2><span class="num">10</span> Jar layout</h2>
+        <p>Both jars, exactly as shipped:</p>
+        <div class="ftree">
+<span class="d">mirror-0.3.0-rageforge+26.2.jar</span>
+<span class="br">├─</span> <span class="f">fabric.mod.json</span>              <span class="cm"># id: mirror · MIT · breaks: iris</span>
+<span class="br">├─</span> <span class="f">mirror.client.mixins.json</span>    <span class="cm"># 14 client mixins, JAVA_25</span>
+<span class="br">├─</span> <span class="d">io/monogram/mirror/</span>
+<span class="br">│  ├─</span> <span class="f">MirrorMod.class</span>            <span class="cm"># common init, registries</span>
+<span class="br">│  ├─</span> <span class="f">MirrorBlock.class</span>          <span class="cm"># flat, HorizontalDirectionalBlock</span>
+<span class="br">│  ├─</span> <span class="f">MirrorCubeBlock.class</span>      <span class="cm"># full cube, all six faces</span>
+<span class="br">│  ├─</span> <span class="f">MirrorBlockEntity.class</span>    <span class="cm"># marks a block as a mirror surface</span>
+<span class="br">│  └─</span> <span class="d">client/</span>
+<span class="br">│     ├─</span> <span class="f">MirrorClient.class</span>       <span class="cm"># client entrypoint</span>
+<span class="br">│     ├─</span> <span class="f">MirrorReflection.class</span>   <span class="cm"># the plane math</span>
+<span class="br">│     ├─</span> <span class="f">MirrorFbo.class</span>          <span class="cm"># render targets + depth</span>
+<span class="br">│     ├─</span> <span class="f">MirrorBlockEntityRenderer.class</span> <span class="cm"># drives the passes</span>
+<span class="br">│     ├─</span> <span class="f">MirrorConfig.class</span>       <span class="cm"># the seven values</span>
+<span class="br">│     ├─</span> <span class="f">MirrorConfigScreen.class</span> <span class="cm"># Cloth Config UI</span>
+<span class="br">│     ├─</span> <span class="f">MirrorModMenu.class</span>      <span class="cm"># Mod Menu hook</span>
+<span class="br">│     └─</span> <span class="d">mixin/</span>                  <span class="cm"># 14 classes, see below</span>
+<span class="br">└─</span> <span class="d">assets/mirror/</span>
+   <span class="br">├─</span> <span class="f">shaders/core/mirror_project.vsh|fsh</span> <span class="cm"># projected sampling</span>
+   <span class="br">├─</span> <span class="f">blockstates/ models/ items/</span>        <span class="cm"># incl. frame bars + corners</span>
+   <span class="br">└─</span> <span class="f">lang/en_us.json · de_de.json</span>
+
+<span class="d">rageforge-0.1.0+26.2.jar</span>
+<span class="br">├─</span> <span class="f">fabric.mod.json</span>              <span class="cm"># depends: mirror, fabric-api, java&gt;=25</span>
+<span class="br">├─</span> <span class="f">LICENSE_rageforge</span>
+<span class="br">├─</span> <span class="d">com/rageforge/mod/</span>
+<span class="br">│  └─</span> <span class="f">RageforgeMod.class</span>        <span class="cm"># creative tab + cube entry</span>
+<span class="br">└─</span> <span class="d">assets/rageforge/</span>
+   <span class="br">├─</span> <span class="f">textures/block|item/spiegelwuerfel.png</span>
+   <span class="br">├─</span> <span class="f">models/ blockstates/ items/</span>
+   <span class="br">└─</span> <span class="f">lang/en_us.json · de_de.json</span>
+        </div>
+        <p>
+          Two details in that tree are worth calling out. First, the presence of
+          <code>mirror_project.vsh</code> / <code>.fsh</code>: a dedicated shader program that samples the
+          reflection buffer using <em>projected</em> coordinates, which is how a flat texture ends up aligned
+          with the world instead of sliding across the face. Second,
+          <code>mirror_bar_*</code> and <code>mirror_corner_*</code> models — the frame pieces of the
+          original flat mirror. The Rageforge cube deliberately has none of them, which is what makes it
+          borderless.
+        </p>
+      </section>
+
+      <section id="classes">
+        <h2><span class="num">11</span> Class responsibilities</h2>
+        <div class="tw">
+          <table>
+            <thead>
+              <tr><th>Class</th><th>Side</th><th>Responsibility</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>MirrorMod</code></td><td>common</td><td>Registers blocks, items and the block entity type. Holds the <code>BlockEntityType</code> referenced by <code>MirrorBlockEntity</code>.</td></tr>
+              <tr><td><code>MirrorBlock</code></td><td>common</td><td>The flat mirror. Extends <code>HorizontalDirectionalBlock</code>, so it orients to the placer via <code>getHorizontalDirection().getOpposite()</code>, and checks <code>getFluidState</code> on placement.</td></tr>
+              <tr><td><code>MirrorCubeBlock</code></td><td>common</td><td>The Rageforge cube. A plain <code>Block</code> with no facing property — every side is equal — that supplies a <code>MirrorBlockEntity</code> and overrides <code>RenderShape</code> so vanilla does not draw the faces itself.</td></tr>
+              <tr><td><code>MirrorBlockEntity</code></td><td>common</td><td>Minimal marker. Its existence at a position is what makes that block a reflection source the renderer can find.</td></tr>
+              <tr><td><code>MirrorClient</code></td><td>client</td><td>Client entrypoint: binds the block entity renderer, loads config, registers the custom shader.</td></tr>
+              <tr><td><code>MirrorReflection</code></td><td>client</td><td>The math. Reflects points and directions across a <code>MirrorSurface</code> (center + normal) using <code>Vec3</code> operations.</td></tr>
+              <tr><td><code>MirrorFbo</code></td><td>client</td><td>Render-target pool per recursion level, main-pass depth capture, depth seeding, bulk release.</td></tr>
+              <tr><td><code>MirrorBlockEntityRenderer</code></td><td>client</td><td>The orchestrator. Collects surfaces, enforces the budget, runs each pass, and restores state via its nested <code>State</code> record. Resolves block models through <code>BlockModelResolver</code> and a <code>BlockDisplayContext</code>.</td></tr>
+              <tr><td><code>MirrorConfig</code></td><td>client</td><td>The seven values, including <code>distanceChunks</code> and float clamping helpers.</td></tr>
+              <tr><td><code>MirrorConfigScreen</code> · <code>MirrorModMenu</code></td><td>client</td><td>Optional in-game settings UI through Cloth Config, surfaced by Mod Menu. Both are <em>suggested</em>, not required — the mod works with the JSON file alone.</td></tr>
+              <tr><td><code>RageforgeMod</code></td><td>common</td><td>Builds a <code>CreativeModeTab</code> with a title, icon supplier and <code>DisplayItemsGenerator</code>, and registers it in <code>BuiltInRegistries</code>.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="mixins">
+        <h2><span class="num">12</span> All fourteen client mixins</h2>
+        <p>
+          The mixin config declares <code>compatibilityLevel: JAVA_25</code> and
+          <code>defaultRequire: 1</code>, meaning every injection must find its target or the game
+          refuses to start. That strictness is why the mod is pinned to <code>~26.2</code>.
+        </p>
+        <div class="tw">
+          <table>
+            <thead>
+              <tr><th>Mixin</th><th>Injected member</th><th>Purpose</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>CameraInvoker</code></td><td><code>mirror$setPosition</code>, <code>setRotation</code>, <code>setDetached</code>, <code>prepareCullFrustum</code></td><td>Move the camera to the mirrored position and orientation for the pass.</td></tr>
+              <tr><td><code>GameRendererMixin</code></td><td><code>mirror$renderReflections</code>, <code>mirror$seedHandDepth</code></td><td>The entry point: drive all reflection passes, and bracket <code>renderItemInHand</code> so the hand does not pollute the reflection.</td></tr>
+              <tr><td><code>GameRendererTargetMixin</code></td><td><code>mirror$redirectToReflectionFbo</code></td><td>Send draw output to the reflection framebuffer instead of the screen.</td></tr>
+              <tr><td><code>GameRendererAccessor</code></td><td><code>mirror$resourcePool</code>, <code>bobView</code>, <code>bobHurt</code>, <code>spinningEffectTime</code>, <code>spinningEffectSpeed</code></td><td>Reach private renderer state to disable view bobbing and screen effects inside the pass.</td></tr>
+              <tr><td><code>FrustumMixin</code></td><td><code>mirror$skipOffsetInReflection</code></td><td>Suppress the frustum's usual origin offset so culling matches the oblique projection.</td></tr>
+              <tr><td><code>LevelExtractorAccessor</code></td><td><code>mirror$applyFrustum</code></td><td>Install the mod's frustum for the duration of the reflection pass.</td></tr>
+              <tr><td><code>LevelRendererAccessor</code></td><td><code>mirror$setCloudRenderer</code></td><td>Swap the cloud renderer instance while reflecting.</td></tr>
+              <tr><td><code>LevelRendererMainPassMixin</code></td><td><code>mirror$captureSceneDepth</code></td><td>Snapshot the main pass depth buffer for later seeding.</td></tr>
+              <tr><td><code>LevelRendererCloudMixin</code></td><td><code>mirror$guardCloudsInReflection</code></td><td>Prevent clouds from being drawn into the wrong target or twice.</td></tr>
+              <tr><td><code>SectionOcclusionGraphMixin</code></td><td><code>mirror$skipOctreeRebuildInReflection</code>, <code>mirror$preserveFrustumSignalDuringPass</code></td><td>Keep chunk occlusion culling state intact — a rebuild triggered from inside a reflection would corrupt the main view.</td></tr>
+              <tr><td><code>ViewAreaMixin</code></td><td><code>mirror$skipGridShiftInReflection</code></td><td>Stop the chunk grid from re-centering on the mirrored camera position.</td></tr>
+              <tr><td><code>SkyRendererMixin</code></td><td><code>mirror$guardSkyInReflection</code></td><td>Render the sky correctly into the reflection target.</td></tr>
+              <tr><td><code>SkyRendererAccessor</code></td><td><code>mirror$renderTarget</code>, <code>mirror$setRenderTarget</code></td><td>Read and swap the sky renderer's private render target.</td></tr>
+              <tr><td><code>CloudRendererAccessor</code></td><td><code>mirror$texture</code>, <code>mirror$setTexture</code></td><td>Same idea for the cloud renderer's texture.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout why">
+          <span class="ci">🔬</span>
+          <div>
+            <span class="ct">Reading the pattern</span>
+            <p>
+              Notice that exactly five of the fourteen do real work (<code>renderReflections</code>,
+              <code>redirectToReflectionFbo</code>, <code>captureSceneDepth</code>,
+              <code>applyFrustum</code>, <code>seedHandDepth</code>). The other nine are accessors and
+              guards. That ratio is the honest summary of this mod: the reflection idea is simple, and
+              almost all of the engineering is about re-entering a renderer that was never designed to
+              be re-entered.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section id="blocks">
+        <h2><span class="num">13</span> Blocks and registration</h2>
+        <h3>The flat mirror</h3>
+        <p>
+          <code>MirrorBlock extends HorizontalDirectionalBlock</code>. On placement it reads
+          <code>getHorizontalDirection().getOpposite()</code> so the reflective side faces the player,
+          and it consults <code>Level.getFluidState</code> at the clicked position — standard behaviour for
+          a block that can be waterlogged or placed in fluid. Its models include
+          <code>mirror_glass</code> plus four <code>mirror_bar_*</code> and four
+          <code>mirror_corner_*</code> pieces, which is how it gets a visible frame.
+        </p>
+        <h3>The Mirror Cube</h3>
+        <p>
+          <code>MirrorCubeBlock extends Block</code> — deliberately <em>not</em> directional, because a cube
+          with six reflective faces has no meaningful facing. It declares a
+          <code>MapCodec</code> via <code>simpleCodec</code>, creates a <code>MirrorBlockEntity</code>, and
+          returns a <code>RenderShape</code> that hands drawing over to the block entity renderer instead
+          of the normal block model path.
+        </p>
+        <div class="callout why">
+          <span class="ci">🧊</span>
+          <div>
+            <span class="ct">Why the cube is borderless</span>
+            <p>
+              The flat mirror ships frame geometry; the cube does not reference any of it. Its blockstate
+              points at a single full-cube model whose faces are entirely reflective surface. Visually that
+              is the whole point of the Rageforge variant — an object with no frame, no edge trim and no
+              obvious "front", which is exactly what the site's logo depicts.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section id="rageforge-layer">
+        <h2><span class="num">14</span> The Rageforge layer</h2>
+        <p>
+          <code>rageforge</code> is intentionally tiny — one class. From the shipped bytecode it:
+        </p>
+        <ul>
+          <li>Builds a <code>CreativeModeTab</code> using the builder API: <code>title(Component)</code>, an icon <code>Supplier</code>, and a <code>DisplayItemsGenerator</code>.</li>
+          <li>Registers that tab into <code>BuiltInRegistries</code>.</li>
+          <li>Holds a <code>MOD_ID</code> constant and implements <code>ModInitializer</code>.</li>
+          <li>Ships its own assets under <code>assets/rageforge/</code> — model, blockstate, item entry, both textures, and English plus German translations.</li>
+        </ul>
+        <p>
+          Its <code>fabric.mod.json</code> lists <code>"mirror": "*"</code> under <code>depends</code>,
+          so it cannot load without the engine. Both jars are always required.
+        </p>
+        <div class="cb">
+          <div class="cb-head"><span class="dotf">rageforge/fabric.mod.json — dependencies</span><span>as shipped</span></div>
+<pre>{
+  <span class="k">"entrypoints"</span><span class="p">:</span> { <span class="k">"main"</span><span class="p">:</span> [<span class="st">"com.rageforge.mod.RageforgeMod"</span>] },
+  <span class="k">"depends"</span><span class="p">:</span> {
+    <span class="k">"fabricloader"</span><span class="p">:</span> <span class="st">"&gt;=0.19.0"</span><span class="p">,</span>
+    <span class="k">"minecraft"</span><span class="p">:</span>    <span class="st">"~26.2"</span><span class="p">,</span>
+    <span class="k">"java"</span><span class="p">:</span>         <span class="st">"&gt;=25"</span><span class="p">,</span>
+    <span class="k">"fabric-api"</span><span class="p">:</span>   <span class="st">"*"</span><span class="p">,</span>
+    <span class="k">"mirror"</span><span class="p">:</span>       <span class="st">"*"</span>
+  }
+}</pre>
+        </div>
+      </section>
+
+      <!-- ============ PERFORMANCE ============ -->
+      <section id="performance-model">
+        <h2><span class="num">15</span> The cost model</h2>
+        <p class="lead">
+          Rendering cost scales with the <em>number of extra passes</em> times the <em>cost of each pass</em>.
+          The config splits neatly along that line: four values limit how many passes happen, three limit
+          what each pass costs.
+        </p>
+        <div class="cb">
+          <div class="cb-head"><span class="dotf">rough mental model</span><span>concept</span></div>
+<pre>frameCost  ≈  mainPass  +  Σ (passCost)  over all reflection passes
+
+passes     ≤  min( maxRenderPasses,
+                   tree( maxReflections, recursionDepth, nestedPerParent ) )
+
+passCost   ∝  resolutionScale²                <span class="c">// pixels — quadratic!</span>
+            ×  visibleGeometry( reflectionDistanceChunks, fogStartBlocks )</pre>
+        </div>
+        <h3>Why <code>resolutionScale</code> dominates</h3>
+        <p>
+          It is the only value that enters <em>quadratically</em>. Going from <code>1.0</code> to
+          <code>0.7</code> is not a 30% saving — it is roughly <code>0.7² = 0.49</code>, so about half the
+          pixels per pass, across every pass simultaneously. Nothing else in the config comes close as a
+          single change.
+        </p>
+        <h3>Why <code>nestedPerParent</code> is the dangerous one</h3>
+        <p>
+          It is the branching factor of the reflection tree. With <code>nestedPerParent = 3</code> and
+          <code>recursionDepth = 4</code> the worst case is <code>1+3+9+27 = 40</code> passes on a single
+          chain; raise it to 4 and it becomes 85. This is why <code>maxRenderPasses</code> exists as a
+          separate absolute ceiling — it is the value that saves you when the other three multiply.
+        </p>
+        <h3>Where the cost actually lands</h3>
+        <ul>
+          <li><strong>GPU fill rate</strong> — driven by <code>resolutionScale</code> and pass count.</li>
+          <li><strong>CPU draw-call submission</strong> — each pass re-submits terrain and entities; <code>reflectionDistanceChunks</code> is the main lever.</li>
+          <li><strong>GPU memory</strong> — one render target per recursion level at the scaled resolution.</li>
+          <li><strong>Culling work</strong> — a frustum per pass, which is why so much mixin effort goes into <em>not</em> rebuilding occlusion data.</li>
+        </ul>
+      </section>
+
+      <section id="config-reference">
+        <h2><span class="num">16</span> Config reference</h2>
+        <p>
+          File: <code>config/mirror.json</code>. Shipped defaults, with what each value actually controls.
+          Optional in-game editing via Mod Menu + Cloth Config.
+        </p>
+        <div class="cb">
+          <div class="cb-head"><span class="dotf">config/mirror.json</span><span>shipped defaults</span></div>
+<pre>{
+  <span class="k">"maxReflections"</span><span class="p">:</span> <span class="nu">10</span><span class="p">,</span>
+  <span class="k">"recursionDepth"</span><span class="p">:</span> <span class="nu">4</span><span class="p">,</span>
+  <span class="k">"nestedPerParent"</span><span class="p">:</span> <span class="nu">2</span><span class="p">,</span>
+  <span class="k">"maxRenderPasses"</span><span class="p">:</span> <span class="nu">48</span><span class="p">,</span>
+  <span class="k">"reflectionDistanceChunks"</span><span class="p">:</span> <span class="nu">10</span><span class="p">,</span>
+  <span class="k">"fogStartBlocks"</span><span class="p">:</span> <span class="nu">100</span><span class="p">,</span>
+  <span class="k">"resolutionScale"</span><span class="p">:</span> <span class="nu">0.85</span>
+}</pre>
+        </div>
+        <div class="tw">
+          <table>
+            <thead>
+              <tr><th>Key</th><th>Default</th><th>Controls</th><th>Scaling</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>resolutionScale</code></td><td>0.85</td>
+                <td>Reflection buffer resolution relative to your screen. <code>1.0</code> = full quality.</td>
+                <td><strong>Quadratic</strong> — the single biggest lever</td>
+              </tr>
+              <tr>
+                <td><code>recursionDepth</code></td><td>4</td>
+                <td>How many times a mirror may appear inside another mirror's reflection.</td>
+                <td>Tree depth</td>
+              </tr>
+              <tr>
+                <td><code>nestedPerParent</code></td><td>2</td>
+                <td>How many child reflections one reflection may spawn.</td>
+                <td><strong>Exponential</strong> — branching factor</td>
+              </tr>
+              <tr>
+                <td><code>maxReflections</code></td><td>10</td>
+                <td>Maximum mirror surfaces rendered in one frame.</td>
+                <td>Linear</td>
+              </tr>
+              <tr>
+                <td><code>maxRenderPasses</code></td><td>48</td>
+                <td>Absolute ceiling on reflection passes per frame. The safety net.</td>
+                <td>Hard cap</td>
+              </tr>
+              <tr>
+                <td><code>reflectionDistanceChunks</code></td><td>10</td>
+                <td>Render distance <em>inside</em> the reflection, in chunks.</td>
+                <td>Geometry per pass</td>
+              </tr>
+              <tr>
+                <td><code>fogStartBlocks</code></td><td>100</td>
+                <td>Distance where fog begins fading the reflection out.</td>
+                <td>Hides distant cost</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout warn">
+          <span class="ci">⚠</span>
+          <div>
+            <span class="ct">Sanity rule</span>
+            <p>
+              Keep <code>reflectionDistanceChunks</code> at or below your normal render distance. A reflection
+              that reaches further than your own view is paying for chunks you would not otherwise draw at all.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section id="presets">
+        <h2><span class="num">17</span> Tuning presets</h2>
+        <p>Starting points rather than gospel — measure on your own hardware.</p>
+
+        <h3>Performance — weak GPU or integrated graphics</h3>
+        <div class="cb">
+          <div class="cb-head"><span class="dotf">config/mirror.json</span><span>performance</span></div>
+<pre>{
+  <span class="k">"maxReflections"</span><span class="p">:</span> <span class="nu">4</span><span class="p">,</span>
+  <span class="k">"recursionDepth"</span><span class="p">:</span> <span class="nu">1</span><span class="p">,</span>
+  <span class="k">"nestedPerParent"</span><span class="p">:</span> <span class="nu">1</span><span class="p">,</span>
+  <span class="k">"maxRenderPasses"</span><span class="p">:</span> <span class="nu">12</span><span class="p">,</span>
+  <span class="k">"reflectionDistanceChunks"</span><span class="p">:</span> <span class="nu">5</span><span class="p">,</span>
+  <span class="k">"fogStartBlocks"</span><span class="p">:</span> <span class="nu">48</span><span class="p">,</span>
+  <span class="k">"resolutionScale"</span><span class="p">:</span> <span class="nu">0.55</span>
+}</pre>
+        </div>
+        <p>No mirror-in-mirror, half-resolution buffers, short reach. Mirrors still work and still reflect correctly — they are just cheaper and softer.</p>
+
+        <h3>Balanced — the shipped defaults</h3>
+        <p>
+          <code>resolutionScale 0.85</code>, <code>recursionDepth 4</code>, <code>nestedPerParent 2</code>,
+          <code>maxRenderPasses 48</code>. Infinite-mirror effect is visible, cost stays bounded.
+        </p>
+
+        <h3>Showcase — strong GPU, screenshots and video</h3>
+        <div class="cb">
+          <div class="cb-head"><span class="dotf">config/mirror.json</span><span>showcase</span></div>
+<pre>{
+  <span class="k">"maxReflections"</span><span class="p">:</span> <span class="nu">16</span><span class="p">,</span>
+  <span class="k">"recursionDepth"</span><span class="p">:</span> <span class="nu">6</span><span class="p">,</span>
+  <span class="k">"nestedPerParent"</span><span class="p">:</span> <span class="nu">2</span><span class="p">,</span>
+  <span class="k">"maxRenderPasses"</span><span class="p">:</span> <span class="nu">96</span><span class="p">,</span>
+  <span class="k">"reflectionDistanceChunks"</span><span class="p">:</span> <span class="nu">14</span><span class="p">,</span>
+  <span class="k">"fogStartBlocks"</span><span class="p">:</span> <span class="nu">160</span><span class="p">,</span>
+  <span class="k">"resolutionScale"</span><span class="p">:</span> <span class="nu">1.0</span>
+}</pre>
+        </div>
+        <div class="callout warn">
+          <span class="ci">⚠</span>
+          <div>
+            <span class="ct">Note on the showcase preset</span>
+            <p>
+              <code>nestedPerParent</code> stays at 2 on purpose. Raising depth is comparatively safe;
+              raising the branching factor is what produces frame-time spikes. If you want deeper infinite
+              mirrors, push <code>recursionDepth</code>, not <code>nestedPerParent</code>.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ COMPAT ============ -->
+      <section id="sodium">
+        <h2><span class="num">18</span> Why Sodium works</h2>
+        <p>
+          Sodium replaces Minecraft's terrain renderer with its own. That would normally break a mod that
+          re-enters the render pipeline — but the mod's own metadata explains the approach, and it is worth
+          quoting because it is the cleanest possible summary:
+        </p>
+        <div class="callout why">
+          <span class="ci">📋</span>
+          <div>
+            <span class="ct">From <code>fabric.mod.json</code>, key <code>mirror:notes</code></span>
+            <p>
+              "Compatible with Sodium: during a reflection the mod points Sodium's terrain projection at the
+              mirror's oblique projection so Sodium draws the reflected view (not the scene behind the
+              mirror), then restores it."
+            </p>
+          </div>
+        </div>
+        <p>
+          The key insight: the mod does not fight Sodium or bypass it. It lets Sodium do the terrain drawing
+          it is good at, and only changes the <em>projection matrix</em> Sodium renders with. Sodium is
+          drawing the reflected view without knowing anything about mirrors — it simply obeys the matrix it
+          is given, and the matrix is restored afterwards.
+        </p>
+      </section>
+
+      <section id="iris">
+        <h2><span class="num">19</span> Why Iris does not</h2>
+        <p>
+          Iris is listed under <code>breaks</code> in <code>fabric.mod.json</code>, which means Fabric Loader
+          will refuse to run them together rather than let you discover the breakage in-game.
+        </p>
+        <div class="callout bad">
+          <span class="ci">✕</span>
+          <div>
+            <span class="ct">The structural conflict</span>
+            <p>
+              Iris substitutes the entire render pipeline with a shader-pack-driven one: its own passes,
+              its own targets, its own deferred stages. The reflection pass works by <em>re-entering</em>
+              Minecraft's pipeline mid-frame with a modified camera and projection. Under Iris that
+              pipeline no longer exists in the form the mod re-enters, so there is nothing to re-enter.
+            </p>
+            <p>
+              This is not a bug that can be patched around — it is two mods claiming ownership of the
+              same stage of the frame.
+            </p>
+          </div>
+        </div>
+        <p>
+          Sodium alone is supported and recommended. Sodium plus Iris is not.
+        </p>
+      </section>
+
+      <section id="requirements">
+        <h2><span class="num">20</span> Requirements</h2>
+        <div class="tw">
+          <table>
+            <thead><tr><th>Component</th><th>Version</th><th>Why</th></tr></thead>
+            <tbody>
+              <tr><td>Minecraft Java</td><td><code>~26.2</code></td><td>Mixins target exact renderer internals; a different version moves them.</td></tr>
+              <tr><td>Fabric Loader</td><td><code>&gt;=0.19.0</code></td><td>Mixin features and loader API used by the mod.</td></tr>
+              <tr><td>Java</td><td><code>&gt;=25</code></td><td>Mixin config declares <code>compatibilityLevel: JAVA_25</code>.</td></tr>
+              <tr><td>Fabric API</td><td>any 26.2 build</td><td>Registry and rendering helpers.</td></tr>
+              <tr><td>Mod Menu · Cloth Config</td><td>optional</td><td><code>suggests</code> only — enables the in-game settings screen.</td></tr>
+              <tr><td>Iris</td><td>incompatible</td><td>Declared under <code>breaks</code>.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ============ REFERENCE ============ -->
+      <section id="ids">
+        <h2><span class="num">21</span> IDs and assets</h2>
+        <div class="tw">
+          <table>
+            <thead><tr><th>Identifier</th><th>Type</th><th>English name</th></tr></thead>
+            <tbody>
+              <tr><td><code>mirror:mirror</code></td><td>block · item</td><td>Mirror</td></tr>
+              <tr><td><code>mirror:spiegelwuerfel</code></td><td>block · item</td><td>Mirror Cube</td></tr>
+              <tr><td><code>rageforge:spiegelwuerfel</code></td><td>block · item</td><td>Mirror Cube (Rageforge tab entry)</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          Both mods ship <code>en_us</code> and <code>de_de</code> translations. In German the block is
+          <em>Spiegelwürfel</em>, which is the original name of the project.
+        </p>
+        <h3>Shaders</h3>
+        <p>
+          <code>assets/mirror/shaders/core/mirror_project.vsh</code> and <code>.fsh</code> implement the
+          projected sampling of the reflection buffer. The vertex stage computes the projected texture
+          coordinate for each fragment of the mirror face; the fragment stage samples the reflection target
+          and applies distance fog. This is what makes the reflection stay locked to the world as you move,
+          instead of behaving like a decal stuck to the block.
+        </p>
+      </section>
+
+      <section id="troubleshooting">
+        <h2><span class="num">22</span> Troubleshooting</h2>
+        <div class="tw">
+          <table>
+            <thead><tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>Game crashes on startup with a mixin error</td>
+                <td>Wrong Minecraft version — <code>defaultRequire: 1</code> makes every injection mandatory</td>
+                <td>Use exactly Minecraft 26.2 and Java 25+</td>
+              </tr>
+              <tr>
+                <td>Mirrors are black or show nothing</td>
+                <td>Iris or another pipeline-replacing mod is active</td>
+                <td>Remove Iris; Sodium alone is fine</td>
+              </tr>
+              <tr>
+                <td>Cube appears but nothing reflects</td>
+                <td>Only one of the two jars is installed</td>
+                <td>Install both <code>mirror</code> and <code>rageforge</code></td>
+              </tr>
+              <tr>
+                <td>Severe FPS drop near mirrors</td>
+                <td>Default settings too high for the hardware</td>
+                <td>Apply the performance preset; start with <code>resolutionScale</code></td>
+              </tr>
+              <tr>
+                <td>Frame-time spikes only with several mirrors</td>
+                <td>Reflection tree is branching</td>
+                <td>Lower <code>nestedPerParent</code> and <code>maxRenderPasses</code></td>
+              </tr>
+              <tr>
+                <td>No Rageforge creative tab</td>
+                <td><code>rageforge</code> jar missing or failed its <code>mirror</code> dependency</td>
+                <td>Check the log for the dependency error</td>
+              </tr>
+              <tr>
+                <td>Reflection cuts off in the distance</td>
+                <td>Working as intended</td>
+                <td>Raise <code>reflectionDistanceChunks</code> and <code>fogStartBlocks</code></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="releasing">
+        <h2><span class="num">23</span> Publishing new versions</h2>
+        <p>
+          All builds live in the release hub repository, and this site reads the GitHub Releases API at
+          load time. Publishing a release is the only step needed for it to appear on the
+          <a class="link" href="index.html#downloads">versions page</a> — no site edit, no redeploy.
+        </p>
+        <div class="pipe">
+          <div class="pipe-step reveal">
+            <span class="pn"></span>
+            <div class="pb"><strong>Commit the new jars</strong><span>Drop them into <code>mods/</code> in the hub repository.</span></div>
+          </div>
+          <div class="pipe-step reveal">
+            <span class="pn"></span>
+            <div class="pb"><strong>Add an entry to <code>versions.json</code></strong><span>Newest first, and update the <code>latest</code> field. This is the offline fallback the site uses if the API is unreachable.</span></div>
+          </div>
+          <div class="pipe-step reveal">
+            <span class="pn"></span>
+            <div class="pb"><strong>Tag and push</strong><span><code>git tag v0.2.0 &amp;&amp; git push origin v0.2.0</code></span></div>
+          </div>
+          <div class="pipe-step reveal">
+            <span class="pn"></span>
+            <div class="pb"><strong>Publish the GitHub release</strong><span>Attach the jars or a zip as assets. The site links assets directly when present, and falls back to the source archive otherwise.</span></div>
+          </div>
+        </div>
+        <div class="callout why">
+          <span class="ci">🔗</span>
+          <div>
+            <span class="ct">The permanent "latest" link</span>
+            <p>
+              <code>github.com/TheRealDevCH/Rageforge-Spiegelwuerfel/releases/latest</code> always resolves
+              to the newest non-prerelease. Every download button on this site points at it, so links you
+              share never go stale. Marking a release as <em>pre-release</em> keeps it out of that link
+              while still listing it on the versions page.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section id="license">
+        <h2><span class="num">24</span> License and credits</h2>
+        <ul>
+          <li>
+            <strong>Reflection engine</strong> — <a class="link" href="https://github.com/Isaac-Harper/mirror" target="_blank" rel="noopener">Mirror</a>
+            by Isaac Harper, licensed <strong>MIT</strong>. All of the rendering work described in sections
+            05 to 12 is that project's design; this build is version <code>0.3.0-rageforge+26.2</code>.
+          </li>
+          <li>
+            <strong>Mirror Cube, creative tab, integration</strong> — Rageforge. Ships its own
+            <code>LICENSE_rageforge</code>.
+          </li>
+          <li>
+            <strong>This documentation</strong> — written from analysis of the shipped jars: mod metadata,
+            mixin configuration, class members and asset layout. Where a mechanism is described as
+            <em>conceptual</em>, the code block illustrates the technique rather than reproducing decompiled
+            source.
+          </li>
+        </ul>
+        <div class="docs-foot-nav">
+          <a class="btn btn-ghost btn-sm" href="index.html">← Back to the overview</a>
+          <a class="btn btn-primary btn-sm" href="https://github.com/TheRealDevCH/Rageforge-Spiegelwuerfel/releases/latest">Download the latest version</a>
+        </div>
+      </section>
+
+    </article>
+  </main>
+
+  <!-- ================= RIGHT TOC ================= -->
+  <aside class="toc-right" id="toc"></aside>
+
+</div>
+
+<footer class="site-foot">
+  <div class="foot-inner">
+    <div class="foot-brand">
+      <img src="assets/logo.svg" alt="">
+      <span>Rageforge Mirror Cube · Documentation</span>
+    </div>
+    <div class="foot-links">
+      <a href="index.html">Home</a><span class="dot">·</span>
+      <a href="https://github.com/TheRealDevCH/Rageforge-Spiegelwuerfel">Release hub</a><span class="dot">·</span>
+      <a href="https://github.com/Isaac-Harper/mirror" target="_blank" rel="noopener">Upstream Mirror (MIT)</a>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/site.js"></script>
+<script>
+  /* ---------------- tree behaviour ---------------- */
+  const tree = document.getElementById('tree');
+
+  /* expand / collapse groups */
+  tree.querySelectorAll('.node.has-kids').forEach((node) => {
+    node.addEventListener('click', () => {
+      const kids = document.getElementById(node.dataset.group);
+      const open = kids.classList.toggle('open');
+      node.classList.toggle('open', open);
+    });
+  });
+
+  /* jump to section */
+  const leafNodes = Array.from(tree.querySelectorAll('.node[data-target]'));
+  leafNodes.forEach((node) => {
+    node.addEventListener('click', () => {
+      const el = document.getElementById(node.dataset.target);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+
+  /* ---------------- right-hand TOC ---------------- */
+  const sections = Array.from(document.querySelectorAll('article section'));
+  const toc = document.getElementById('toc');
+  toc.innerHTML = '<div class="tt">On this page</div>' + sections.map((s) => {
+    const h = s.querySelector('h2');
+    const num = h.querySelector('.num');
+    const label = h.textContent.replace(num ? num.textContent : '', '').trim();
+    return '<a href="#' + s.id + '" data-id="' + s.id + '">' + label + '</a>';
+  }).join('');
+
+  /* ---------------- active section sync ---------------- */
+  const tocLinks = Array.from(toc.querySelectorAll('a'));
+
+  function setActive(id) {
+    tocLinks.forEach((a) => a.classList.toggle('on', a.dataset.id === id));
+    leafNodes.forEach((n) => {
+      const on = n.dataset.target === id;
+      n.classList.toggle('active', on);
+      /* auto-open the group that contains the active section */
+      if (on) {
+        const kids = n.closest('.kids');
+        if (kids && !kids.classList.contains('open')) {
+          kids.classList.add('open');
+          const head = tree.querySelector('.node[data-group="' + kids.id + '"]');
+          if (head) head.classList.add('open');
+        }
+      }
+    });
+  }
+
+  if ('IntersectionObserver' in window) {
+    const spy = new IntersectionObserver((entries) => {
+      /* pick the entry closest to the top of the viewport */
+      const visible = entries.filter((e) => e.isIntersecting);
+      if (!visible.length) return;
+      visible.sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+      setActive(visible[0].target.id);
+    }, { rootMargin: '-12% 0px -70% 0px', threshold: [0, 0.25, 1] });
+    sections.forEach((s) => spy.observe(s));
+  }
+
+  /* deep link on load */
+  if (location.hash) {
+    const id = location.hash.slice(1);
+    setActive(id);
+    const el = document.getElementById(id);
+    if (el) setTimeout(() => el.scrollIntoView({ block: 'start' }), 60);
+  } else {
+    setActive('overview');
+  }
+</script>
+
+</body>
+</html>
