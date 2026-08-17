@@ -1,8 +1,8 @@
 {
-  "maxReflections": 10,
-  "recursionDepth": 4,
+  "maxReflections": 12,
+  "recursionDepth": 6,
   "nestedPerParent": 2,
-  "maxRenderPasses": 48,
+  "maxRenderPasses": 64,
   "reflectionDistanceChunks": 10,
   "fogStartBlocks": 100,
   "resolutionScale": 0.85

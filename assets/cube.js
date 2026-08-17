@@ -170,6 +170,12 @@ function initHero(canvas) {
   const cube = new THREE.Mesh(new THREE.BoxGeometry(1.66, 1.66, 1.66), mirrorMaterial(env));
   group.add(cube);
 
+  const cubeEdges = new THREE.LineSegments(
+    new THREE.EdgesGeometry(cube.geometry),
+    new THREE.LineBasicMaterial({ color: 0x090b11, transparent: true, opacity: 0.9 })
+  );
+  group.add(cubeEdges);
+
   const edgeGlow = new THREE.Mesh(
     new THREE.BoxGeometry(1.664, 1.664, 1.664),
     new THREE.MeshPhysicalMaterial({

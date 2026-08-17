@@ -1,0 +1,42 @@
+{
+  "$comment": "Version index for the Rageforge Mirror Cube. The website reads this as a fallback and uses the GitHub Releases API as the primary source. Newest version first.",
+  "repository": "TheRealDevCH/Repotome_Rageforge_initials",
+  "latest": "v0.2.0",
+  "versions": [
+    {
+      "version": "v0.2.0",
+      "released": "2026-08-17",
+      "minecraft": "26.2",
+      "loader": "Fabric 0.19+",
+      "java": "25+",
+      "channel": "release",
+      "files": [
+        "mods/mirror-0.3.1-rageforge+26.2.jar",
+        "mods/rageforge-0.1.1+26.2.jar"
+      ],
+      "changes": [
+        "Deeper default recursion (recursionDepth 4 to 6, maxReflections 10 to 12, maxRenderPasses 48 to 64) for a noticeably closer-to-infinite mirror-in-mirror effect out of the box",
+        "Added a thin dark edge to the Mirror Cube block and item texture so placed cubes read as distinct blocks instead of blending into each other",
+        "No changes to mixins, rendering code, or block logic in this release"
+      ]
+    },
+    {
+      "version": "v0.1.0",
+      "released": "2026-08-16",
+      "minecraft": "26.2",
+      "loader": "Fabric 0.19+",
+      "java": "25+",
+      "channel": "release",
+      "files": [
+        "mods/mirror-0.3.0-rageforge+26.2.jar",
+        "mods/rageforge-0.1.0+26.2.jar"
+      ],
+      "changes": [
+        "First public release of the Mirror Cube (all six faces reflective)",
+        "Rageforge creative tab",
+        "Configurable performance budget via config/mirror.json",
+        "Sodium compatible; Iris unsupported"
+      ]
+    }
+  ]
+}

@@ -13,7 +13,7 @@ BENÖTIGT
 INSTALLATION
 1. Fabric für 26.2 installieren
 2. Fabric API in den mods-Ordner legen
-3. Inhalt von mods/ hier in deinen mods-Ordner kopieren
+3. Inhalt von mods/ (mirror-0.3.1-rageforge+26.2.jar, rageforge-0.1.1+26.2.jar) hier in deinen mods-Ordner kopieren
 4. Optional: config/mirror.json in deinen config-Ordner kopieren
 5. Spiel starten
 
