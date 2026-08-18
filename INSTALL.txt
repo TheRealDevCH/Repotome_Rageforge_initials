@@ -29,3 +29,13 @@ CONFIG (config/mirror.json)
 - recursionDepth: Spiegel-im-Spiegel (höher = Infinite)
 - resolutionScale: Qualität (1.0 = voll)
 - maxRenderPasses: Performance-Budget
+
+CONFIG IM SPIEL (ohne JSON-Editor)
+Mit zwei zusätzlichen, optionalen Mods lassen sich alle Werte oben
+direkt im Spiel per Regler einstellen (Speichern schreibt automatisch
+in config/mirror.json zurück):
+- Mod Menu (Modrinth: modmenu)
+- Cloth Config API (Modrinth: cloth-config)
+Beide in den mods-Ordner legen, dann: Hauptmenü -> Mods -> Mirror ->
+Zahnrad-Symbol. Ohne diese beiden Mods funktioniert alles wie gewohnt
+über die JSON-Datei.
