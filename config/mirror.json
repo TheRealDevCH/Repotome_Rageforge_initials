@@ -5,5 +5,5 @@
   "maxRenderPasses": 64,
   "reflectionDistanceChunks": 10,
   "fogStartBlocks": 100,
-  "resolutionScale": 0.85
+  "resolutionScale": 0.7
 }
