@@ -1117,7 +1117,10 @@
 
     <div class="hub-note reveal">
       <strong>Publishing a new version:</strong> commit the jars, add an entry to <code>versions.json</code>,
-      tag the commit and publish the release. The permanent
+      tag the commit and publish the release, then attach a
+      <code>rageforge-mirror-cube-vX.Y.Z.zip</code> bundle to the release containing the full
+      <code>mods/</code>, <code>config/</code> and <code>INSTALL.txt</code> — not just the loose jars —
+      so every release stays a complete, self-contained download. The permanent
       <code>/releases/latest</code> link always resolves to the newest stable build, so shared links never go stale.
     </div>
   </section>
@@ -1483,7 +1486,11 @@
   const fmtSize = (b) => b >= 1048576 ? (b / 1048576).toFixed(1) + ' MB' : Math.round(b / 1024) + ' KB';
 
   function pickAsset(rel) {
-    const a = (rel.assets || []).find((x) => /\.(zip|jar)$/i.test(x.name));
+    const assets = rel.assets || [];
+    const bundle = assets.find((x) => /^rageforge-mirror-cube-.*\.zip$/i.test(x.name));
+    const anyZip = assets.find((x) => /\.zip$/i.test(x.name));
+    const anyJar = assets.find((x) => /\.jar$/i.test(x.name));
+    const a = bundle || anyZip || anyJar;
     return a ? a.browser_download_url : rel.zipball_url || (HUB_URL + '/releases/tag/' + rel.tag_name);
   }
 
@@ -1507,17 +1514,18 @@
       pill.textContent = latest.prerelease ? 'Pre-release' : 'Latest';
       pill.className = 'pill ' + (latest.prerelease ? 'pre' : 'latest');
 
-      const assets = (latest.assets || []).length;
+      const latestBundle = (latest.assets || []).find((x) => /^rageforge-mirror-cube-.*\.zip$/i.test(x.name));
       document.getElementById('dl-sub').textContent =
         'Published ' + fmtDate(latest.published_at) + ' · Minecraft 26.2 · Fabric' +
-        (assets ? ' · ' + assets + ' file' + (assets === 1 ? '' : 's') : ' · source archive');
+        (latestBundle ? ' · ' + fmtSize(latestBundle.size) + ' bundle (jars + config + install)' : ' · source archive');
 
       document.getElementById('dl-main').href = pickAsset(latest);
       document.getElementById('dl-notes').href = latest.html_url;
 
       verList.innerHTML = rels.map((r) => {
         const isLatest = r.tag_name === latest.tag_name;
-        const size = (r.assets || []).reduce((s, a) => s + (a.size || 0), 0);
+        const bundle = (r.assets || []).find((x) => /^rageforge-mirror-cube-.*\.zip$/i.test(x.name));
+        const size = bundle ? bundle.size : (r.assets || []).reduce((s, a) => s + (a.size || 0), 0);
         return '<div class="ver-row">' +
           '<div class="l">' +
             '<span class="tag-v">' + r.tag_name + '</span>' +
